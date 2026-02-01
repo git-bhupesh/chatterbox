@@ -32,8 +32,7 @@
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/git-bhupesh/chatterbox.git](https://github.com/git-bhupesh/chatterbox.git)
-   cd chatterbox
+   git clone https://github.com/git-bhupesh/chatterbox.git
 
 2. Create and activate a virtual environment:
    python -m venv venv
