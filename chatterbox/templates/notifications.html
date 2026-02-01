@@ -1,0 +1,123 @@
+
+{% extends 'base.html' %}
+{% load humanize %} {% block content %}
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h2>Notifications</h2>
+        {% if notifications %}
+            <form method="post" action="{% url 'mark_all_read' %}">
+                {% csrf_token %}
+                <button type="submit" class="mark-read-btn">Mark all as read ✅</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="notifications-wrapper">
+        {% if notifications %}
+            <ul class="notifications-list">
+                {% for n in notifications %}
+                    <li class="notification-item {% if not n.is_read %}unread{% else %}read{% endif %}">
+                        <div class="notification-content">
+                            <img src="{{ n.sender.profile.avatar.url|default:'/static/default-avatar.png' }}" 
+                                 class="avatar-mini" alt="{{ n.sender.username }}">
+                            
+                            <div class="notification-text">
+                                {% if n.notification_type == 'like' and n.post %}
+                                    <a href="{% url 'read_and_redirect' n.id %}">
+                                        <strong>{{ n.sender.username }}</strong> liked your post.
+                                    </a>
+                                {% elif n.notification_type == 'comment' and n.post %}
+                                    <a href="{% url 'read_and_redirect' n.id %}">
+                                        <strong>{{ n.sender.username }}</strong> commented: 
+                                        <span class="comment-preview">"{{ n.comment|truncatechars:40 }}"</span>
+                                    </a>
+                                {% elif n.notification_type == 'follow' %}
+                                    <a href="{% url 'read_and_redirect' n.id %}">
+                                        <strong>{{ n.sender.username }}</strong> started following you.
+                                    </a>
+                                {% else %}
+                                    <span>
+                                        <strong>{{ n.sender.username }}</strong> sent you a notification.
+                                    </span>
+                                {% endif %}
+                                <div class="notification-time">{{ n.timestamp|naturaltime }}</div>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="no-notifications">
+                <p>No notifications yet. When people interact with you, you'll see them here!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .notifications-container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .notifications-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    
+    .notifications-list { list-style: none; padding: 0; }
+    .notification-item { 
+        padding: 15px; 
+        border-bottom: 1px solid #eee; 
+        transition: background 0.3s;
+    }
+    .notification-item.unread { background-color: #f0f7ff; border-left: 4px solid #007bff; }
+    .notification-item:hover { background-color: #f8f9fa; }
+
+    .notification-content { display: flex; align-items: center; }
+    .notification-text { margin-left: 12px; }
+    .notification-text a { text-decoration: none; color: #333; }
+    .notification-time { font-size: 0.85rem; color: #888; margin-top: 4px; }
+    .comment-preview { color: #555; font-style: italic; }
+    
+    .mark-read-btn { 
+        background: none; border: 1px solid #ddd; padding: 5px 12px; 
+        border-radius: 20px; font-size: 0.9rem; cursor: pointer;
+    }
+    .mark-read-btn:hover { background: #eee; }
+</style>
+{% endblock %} 
+
+
+
+{% comment %} 
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+<div class="notifications-container">
+  <h2>Notifications</h2>
+
+  {% if notifications %}
+    <form method="post" action="{% url 'mark_all_read' %}">
+      {% csrf_token %}
+      <button type="submit" class="mark-read-btn">Mark all as read ✅</button>
+    </form>
+
+    <ul class="notifications-list">
+      {% for n in notifications %}
+        <li class="notification-item {% if not n.is_read %}unread{% else %}read{% endif %}">
+          <div class="notification-message">
+            {% if n.notification_type == 'like' and n.post %}
+              <a href="{% url 'read_and_redirect' n.id %}">
+                <strong>{{ n.sender.username }}</strong> liked your post.
+              </a>
+            {% elif n.notification_type == 'comment' and n.post %}
+              <a href="{% url 'read_and_redirect' n.id %}">
+                <strong>{{ n.sender.username }}</strong> commented: "{{ n.comment }}"
+              </a>
+            {% else %}
+              <strong>{{ n.sender.username }}</strong> sent you a notification.
+            {% endif %}
+          </div>
+          <div class="notification-time">{{ n.timestamp|naturaltime }}</div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="no-info">No notifications yet.</p>
+  {% endif %}
+</div>
+{% endblock %} {% endcomment %}

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="edit-profile-container">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <h2 class="text-center mb-4">Edit Your Profile</h2>
+
+            <form method="post" enctype="multipart/form-data" class="profile-form">
+                {% csrf_token %}
+
+                {# --- AVATAR PREVIEW SECTION --- #}
+                <div class="avatar-edit-section text-center mb-4">
+                    <div class="position-relative d-inline-block">
+                        <img id="avatar-preview" 
+                             src="{{ user.profile.avatar.url|default:'/static/default-avatar.png' }}" 
+                             alt="Current Avatar" 
+                             class="profile-avatar-large">
+                        
+                        {# This label connects to the hidden file input #}
+                        <label for="id_avatar" class="avatar-upload-badge" title="Change Photo">
+                            <i class="fa-solid fa-camera"></i>
+                        </label>
+                    </div>
+                    <p class="text-muted small mt-2">Personalize your profile photo</p>
+                </div>
+
+                {# --- ACCOUNT INFO SECTION --- #}
+                <div class="form-section mb-4">
+                    <h4 class="section-title"><i class="fa-solid fa-user-gear"></i> Account Info</h4>
+                    {% for field in user_form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ field.label }}</label>
+                            {# We use a CSS selector below to style these #}
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger small mt-1">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {# --- PROFILE DETAILS SECTION --- #}
+                <div class="form-section mb-4">
+                    <h4 class="section-title"><i class="fa-solid fa-address-card"></i> Profile Details</h4>
+                    {% for field in profile_form %}
+                        {% if field.name != 'avatar' %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">{{ field.errors }}</div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            {# The real file input is hidden but linked to the camera icon label #}
+                            <div style="display:none;">{{ field }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="d-grid gap-2 pt-3">
+                    <button type="submit" class="save-btn">💾 Save Changes</button>
+                    <a href="{% url 'profile' user.username %}" class="btn-link-muted">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Real-time Avatar Preview logic
+    const avatarInput = document.querySelector('input[type="file"]');
+    const avatarPreview = document.getElementById('avatar-preview');
+
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreview.setAttribute('src', e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+</script>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="edit-profile-container">
+  <h2>Edit Your Profile</h2>
+  {% if user.profile.avatar %}
+    <div class="current-avatar">
+      <label>Current Avatar:</label><br>
+      <img src="{{ user.profile.avatar.url }}" alt="Current Avatar" class="current-avatar-img">
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="profile-form">
+    {% csrf_token %}
+
+    <div class="form-section">
+      <h3>Account Info</h3>
+      {{ user_form.as_p }}
+    </div>
+
+    <div class="form-section">
+      <h3>Profile Details</h3>
+
+      <!-- Show current avatar if exists -->
+
+      {{ profile_form.as_p }}
+    </div>
+
+    <button type="submit" class="save-btn">💾 Save Changes</button>
+  </form>
+
+  <a href="{% url 'profile' user.username %}" class="back-link">← Back to Profile</a>
+</div>
+{% endblock %} {% endcomment %}

@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="main-content">
+<div class="profile-container">
+    <div class="profile-header-main">
+        
+        <div class="profile-avatar-section">
+            <div class="profile-avatar-wrapper">
+                {% if profile_user.profile.avatar %}
+                    <img src="{{ profile_user.profile.avatar.url }}" alt="Avatar" class="profile-avatar-img">
+                {% else %}
+                    <div class="profile-avatar-img placeholder-avatar">
+                        {{ profile_user.username|first|upper }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="profile-info-section">
+            <div class="profile-title-row">
+                <h2 class="username-display">{{ profile_user.username }}</h2>
+                
+                <div class="profile-actions-area">
+                    {% if request.user == profile_user %}
+                        <a href="{% url 'edit_profile' %}" class="btn-edit-profile">
+                            <i class="fa-solid fa-user-gear"></i> Edit Profile
+                        </a>
+                    {% else %}
+                        <div class="button-row">
+                           {% if is_following %}
+                          <div class="button-row">
+                              <form method="post" action="{% url 'unfollow_user' profile_user.username %}" style="display:inline;">
+                                  {% csrf_token %}
+                                  <button type="submit" class="btn-primary-action btn-unfollow">
+                                      Unfollow
+                                  </button>
+                              </form>
+                              
+                              <a href="{% url 'start_private_chat' profile_user.username %}" class="btn-primary-action">
+                                  <i class="fa-solid fa-paper-plane"></i> Message
+                              </a>
+                          </div>
+                            {% else %}
+                                <form method="post" action="{% url 'follow_user' profile_user.username %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-primary-action">
+                                        <i class="fa-solid fa-user-plus"></i> Follow
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="profile-stats-row">
+                <div class="stat-box">
+                    <span class="stat-number">{{ posts.count }}</span>
+                    <span class="stat-name">posts</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">{{ profile_user.followers.count }}</span>
+                    <span class="stat-name">followers</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">{{ profile_user.following.count }}</span>
+                    <span class="stat-name">following</span>
+                </div>
+            </div>
+
+            <div class="profile-identity">
+                <p class="real-name">{{ profile_user.first_name }} {{ profile_user.last_name }}</p>
+                <p class="bio-text">{{ profile_user.profile.bio }}</p>
+                {% if profile_user.profile.dob %}
+                    <p class="birth-date"><i class="fa-solid fa-cake-candles"></i> Born {{ profile_user.profile.dob }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+  <div class="profile-posts-section">
+    <h3 class="section-title"><i class="fa-solid fa-table-cells"></i> Posts</h3>
+    
+    {% if posts %}
+      <div class="feed-container">
+        {% for post in posts %}
+          <div class="post-card">
+            <div class="post-header">
+              <div class="post-user-info">
+                <strong>{{ post.author.username }}</strong>
+                <span class="post-time">{{ post.created_at|date:"M d, Y" }}</span>
+              </div>
+              
+              {% if user == post.author %}
+                <div class="post-management">
+                  <a href="{% url 'edit_post' post.id %}" class="manage-btn edit" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>
+                  <a href="{% url 'delete_post' post.id %}" class="manage-btn delete" title="Delete" onclick="return confirm('Delete this post?')"><i class="fa-solid fa-trash-can"></i></a>
+                </div>
+              {% endif %}
+            </div>
+
+            {% if post.image %}
+              <div class="post-media">
+                <img src="{{ post.image.url }}" alt="Post Image" class="post-image">
+              </div>
+            {% endif %}
+
+            <div class="post-content">
+              <p class="post-caption">{{ post.caption }}</p>
+            </div>
+            <div class="post-actions">
+            <div class="action-item">
+                <i class="fa-regular fa-heart"></i>
+                <span>{{ post.likes.count }}</span>
+            </div>
+            <div class="action-item">
+                <i class="fa-regular fa-comment"></i>
+                <span>{{ post.comments.count }}</span>
+            </div>
+            <div class="action-item">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span>{{ post.shares_count|default:"0" }}</span>
+            </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p class="no-info text-center text-muted">No posts shared yet.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+<style>
+    .post-actions {
+    display: flex;
+    padding: 10px 15px;
+    border-top: 1px solid #333; /* Matches dark theme */
+    gap: 20px;
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ccc;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.action-item:hover {
+    color: #fff;
+}
+
+.action-item i {
+    font-size: 1.1rem;
+}
+
+/* Optional: Make the heart red on hover */
+.action-item:hover .fa-heart {
+    color: #ff4d4d;
+}
+</style>
+{% endblock %}
+

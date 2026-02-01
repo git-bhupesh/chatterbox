@@ -1,0 +1,570 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatterBox</title>
+    
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@4.6.4/dist/emoji-button.min.js" defer></script>
+</head>
+
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<header class="navbar">
+    <div class="navbar-left">
+
+        <a href="{% url 'feed' %}" class="logo">
+            <i class="fa-solid fa-comments logo-icon"></i> 
+            <span class="desktop-only">ChatterBox</span>
+        </a>
+        <div class="theme-switch-wrapper">
+            <label class="theme-switch" for="theme-checkbox">
+                <input type="checkbox" id="theme-checkbox" />
+                <div class="slider round">
+                    <span class="icon sun"><i class="fa-solid fa-sun"></i></span>
+                    <span class="icon moon"><i class="fa-solid fa-moon"></i></span>
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <div class="navbar-center desktop-only" id="searchContainer">
+    <form method="get" action="{% url 'search_users' %}" class="mobile-search-form">
+        <div class="search-group">
+            <input type="text" name="q" placeholder="Search users..." class="search-input" id="searchInput" value="{{ request.GET.q|default:'' }}">
+            <button type="submit" class="search-submit-btn">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+        </div>
+    </form>
+</div>
+        
+        <nav class="navbar-right">
+            <a href="{% url 'feed' %}" class="nav-link">
+                <i class="fa-solid fa-house"></i> 
+                <span class="desktop-only">Feed</span>
+            </a>
+            <a href="javascript:void(0)" class="mobile-search-trigger mobile-only" onclick="toggleMobileSearch()">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'chat_list' %}" class="nav-link chat-link-wrapper">
+    <i class="fa-solid fa-comment-dots"></i> 
+    <span class="desktop-only">Chat</span>
+
+    <span id="chat-badge-container" 
+          hx-get="{{ request.path }}" 
+          hx-trigger="every 30s" 
+          hx-select="#chat-badge-container" 
+          hx-swap="outerHTML">
+        <span class="badge-wrapper">
+            {% if unread_chat_count > 0 %}
+                <span class="notification-badge">{{ unread_chat_count }}</span>
+            {% endif %}
+        </span>
+    </span>
+</a>
+
+    <div class="notification-wrapper">
+    <a href="{% url 'notifications' %}" class="notification-icon nav-link" id="notificationToggle">
+        <i class="fa-solid fa-bell"></i>
+        <span class="desktop-only">Notifications</span>
+
+        <span id="notif-badge-container" 
+              hx-get="{{ request.path }}" 
+              hx-trigger="every 30s" 
+              hx-select="#notif-badge-container" 
+              hx-swap="outerHTML">
+            <span class="badge-wrapper">
+                {% if unread_notifications_count > 0 %}
+                    <span class="notification-badge">{{ unread_notifications_count }}</span>
+                {% endif %}
+            </span>
+        </span>
+    </a>
+    
+    <div id="notification-dropdown" class="pc-only-dropdown" style="display:none;">
+        {% include 'partials/notification_dropdown.html' %}
+    </div>
+</div>
+
+            <a href="{% url 'profile' user.username %}" class="nav-profile-link">
+                <img src="{{ user.profile.avatar.url }}" class="navbar-avatar">
+            </a>
+            <form method="POST" action="{% url 'logout' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn-styled"><i class="fa-solid fa-power-off"></i></button>
+            </form>
+        {% endif %}
+    </nav>
+</header>
+
+<main class="main-content">
+    {% block content %}{% endblock %}
+</main>
+
+<script>
+    // Toggle Search for Mobile
+    function toggleMobileSearch() {
+        const searchContainer = document.getElementById('searchContainer');
+        searchContainer.classList.toggle('mobile-active');
+        if(searchContainer.classList.contains('mobile-active')) {
+            document.getElementById('searchInput').focus();
+        }
+    }
+
+    // Theme Switch Logic
+    const toggleSwitch = document.querySelector('#theme-checkbox');
+    const currentTheme = localStorage.getItem('theme');
+
+    if (currentTheme) {
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        if (currentTheme === 'dark') {
+            toggleSwitch.checked = true;
+        }
+    }
+
+    toggleSwitch.addEventListener('change', function(e) {
+        if (e.target.checked) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            localStorage.setItem('theme', 'light');
+        }    
+    });
+
+    // Expandable Search Logic
+    function expandSearch() {
+        const form = document.querySelector('.search-form-expandable');
+        const input = document.getElementById('searchInput');
+        if(form) form.classList.add('expanded');
+        if(input) input.focus();
+    }
+
+    document.addEventListener('click', function (e) {
+        const form = document.querySelector('.search-form-expandable');
+        const trigger = document.querySelector('.mobile-search-trigger');
+        const container = document.getElementById('searchContainer');
+        
+        if (form && !form.contains(e.target) && !trigger.contains(e.target)) {
+            form.classList.remove('expanded');
+            container.classList.remove('mobile-active');
+        }
+    });
+
+    // Updated Notification Logic for Mobile Redirect vs PC Dropdown
+const notificationIcon = document.getElementById('notificationToggle');
+const dropdown = document.getElementById('notification-dropdown');
+
+notificationIcon.addEventListener('click', function (e) {
+    const isMobile = window.innerWidth <= 768; // Match your CSS breakpoint
+
+    if (isMobile) {
+        // MOBILE: Do nothing, let the browser follow the href naturally
+        return; 
+    } else {
+        // PC: Stop the link and toggle dropdown
+        e.preventDefault();
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    }
+});
+
+// Close dropdown when clicking outside (PC only)
+document.addEventListener('click', function (e) {
+    if (!dropdown.contains(e.target) && !notificationIcon.contains(e.target)) {
+        dropdown.style.display = 'none';
+    }
+});
+
+    
+
+    // Emoji Picker Logic
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof EmojiButton !== 'undefined') {
+            const picker = new EmojiButton({ theme: currentTheme || 'light' });
+            document.body.addEventListener('click', function (e) {
+                if (e.target.classList.contains('emoji-btn')) {
+                    const targetInput = e.target.previousElementSibling; 
+                    picker.off('emoji');
+                    picker.on('emoji', selection => {
+                        targetInput.value += selection.emoji;
+                    });
+                    picker.togglePicker(e.target);
+                }
+            });
+        }
+    });
+
+    document.body.addEventListener('htmx:configRequest', (event) => {
+        event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+    });
+
+// 1. Mobile Search Toggle
+function toggleMobileSearch() {
+    const searchContainer = document.getElementById('searchContainer');
+    searchContainer.classList.toggle('mobile-active');
+    if (searchContainer.classList.contains('mobile-active')) {
+        setTimeout(() => document.getElementById('searchInput').focus(), 100);
+    }
+}
+
+// HTMX CSRF Token Setup
+    document.body.addEventListener('htmx:configRequest', (event) => {
+        event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+    });
+
+</script>
+
+<style>
+    /* ==========================================================================
+   1. VARIABLES & CORE LAYOUT
+   ========================================================================== */
+:root {
+    --nav-height: 70px;
+    --nav-icon-color: #1a1a1a;
+    --purple-theme: #6a11cb;
+    --badge-red: #ff4d4d;
+    {% comment %} --search-bg-pc: #f0f2f5;
+    --search-bg-dark: rgba(255, 255, 255, 0.1); {% endcomment %}
+    {
+    /* Light Mode Defaults */
+    --search-bg: #f0f2f5;
+    --search-text: #1a1a1a;
+    --search-border: #ccc;
+}
+}
+
+.navbar {
+    height: var(--nav-height);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-card);
+    position: relative;
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.navbar-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+}
+
+/* ==========================================================================
+   2. SHARED COMPONENTS (ICONS, LINKS, BADGES)
+   ========================================================================== */
+/* Bigger Icons Global */
+.navbar-right .nav-link i, 
+.mobile-search-trigger i, 
+.logout-btn-styled i,
+.logo-icon {
+    font-size: 1.5rem !important;
+    color: var(--search-text);
+    size: 20px;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Badges */
+.chat-badge, 
+.notification-badge {
+    background-color: var(--badge-red);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 50%;
+    position: relative;
+    top: -10px;
+    right: 5px;
+}
+
+/* Theme Toggle */
+.theme-switch {
+    width: 46px;
+    height: 24px;
+}
+
+.slider:before {
+    height: 18px;
+    width: 18px;
+}
+
+/* Visibility Helpers */
+.mobile-only { display: none !important; }
+.desktop-only { display: flex !important; }
+
+/* ==========================================================================
+   3. SEARCH BAR STYLES (PC)
+   ========================================================================== */
+.search-group {
+    display: flex;
+    align-items: center;
+    background: var(--search-bg-dark);
+    border: 1px solid #444;
+    border-radius: 20px;
+    padding: 2px 5px 2px 15px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.navbar-center.desktop-only {
+    background: var(--search-bg-pc);
+    border-radius: 20px;
+    padding: 5px 15px;
+    width: 300px;
+}
+
+.search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 8px 0;
+    outline: none;
+    font-size: 0.9rem;
+}
+
+.search-submit-btn {
+    background: var(--purple-theme);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.search-form-pc { 
+    display: flex; 
+    width: 100%; 
+}
+
+.search-form-pc input { 
+    border: none; 
+    background: transparent; 
+    flex: 1; 
+    outline: none; 
+}
+
+.search-form-pc button { 
+    border: none; 
+    background: transparent; 
+    cursor: pointer; 
+    color: #65676b; 
+}
+
+/* Hide extra buttons in center */
+.navbar-center > button {
+    display: none !important;
+}
+
+/* 1. Base style for Desktop */
+#searchContainer {
+    display: flex; /* Show by default on desktop */
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+}
+/* ==========================================================================
+   4. MOBILE RESPONSIVE (MAX-WIDTH: 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    .desktop-only { display: none !important; }
+
+    .navbar {
+        padding: 0 12px;
+    }
+
+    .navbar-right {
+        gap: 18px;
+    }
+
+    .navbar-avatar {
+        width: 34px;
+        height: 34px;
+    }
+    .badge-wrapper {
+        position: absolute !important;
+        top: -5px !important;
+        right: -5px !important;
+    }
+
+    .notification-badge {
+        min-width: 16px;
+        height: 16px;
+        font-size: 9px;
+        border-radius: 50%;
+        padding: 0;
+        border: 1.5px solid #1a1a1a; /* Ring effect */
+    }
+}
+
+
+
+
+    /* Mobile Search Dropdown Container */
+
+     @media (max-width: 768px) {
+    #searchContainer {
+        display: none; /* Hide on mobile screens */
+        position: absolute;
+        top: var(--nav-height); 
+        left: 0;
+        width: 100%;
+        padding: 10px;
+        background: var(--bg-card);
+        z-index: 1100;
+        border-bottom: 1px solid #444;
+    }
+
+    #searchContainer.mobile-active {
+        display: flex !important;
+    }
+
+    #searchContainer.mobile-only {
+        top: 100%;
+        background: var(--bg-card);
+    }
+
+
+/* --- Mobile Search Trigger --- */
+.mobile-search-trigger {
+    {% comment %} color: white; {% endcomment %}
+    color: var(--search-text) !important;
+    margin-top: 5px;
+    display: none !important; /* Forces it to stay hidden on PC/Desktop */
+}
+
+@media (max-width: 768px) {
+    .mobile-search-trigger {
+        display: block !important; /* Only shows when the screen is small */
+        color: white;
+        display: none;
+}
+    }
+    
+    /* Optional: Ensure the desktop center search bar is hidden on mobile */
+    .navbar-center.desktop-only {
+        display: none !important;
+    }
+}
+
+/* PC: Inline Layout */
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Mobile: Icon + Floating Badge */
+@media (max-width: 768px) {
+    .desktop-only { display: none !important; }
+
+    .badge-wrapper {
+        position: absolute !important;
+        top: -5px !important;
+        right: -5px !important;
+    }
+
+    .notification-badge {
+        min-width: 16px;
+        height: 16px;
+        font-size: 9px;
+        border-radius: 50%;
+        padding: 0;
+        border: 1.5px solid #1a1a1a; /* Ring effect */
+    }
+}
+
+@media (max-width: 768px) {
+    /* 1. Hide the text labels for Feed, Chat, and Notifications */
+    .nav-link span.desktop-only {
+        display: none !important;
+    }
+
+    /* 2. Anchor the badge containers to the top-right of the icons */
+    #chat-badge-container, 
+    #notif-badge-container, 
+    .badge-wrapper {
+        position: absolute !important;
+        /* Positioning adjusted for a cleaner 'floating' look */
+        top: -4px !important;
+        right: -6px !important;
+        display: block !important;
+        margin: 0 !important;
+        line-height: 0; /* Prevents text alignment from shifting the circle */
+    }
+
+    /* 3. Visual improvements to the badge circle */
+    .notification-badge {
+        background-color: #ff4d4d !important;
+        color: white !important;
+        
+        /* Ensures a perfect circle */
+        min-width: 18px !important;
+        height: 18px !important;
+        border-radius: 50% !important;
+        
+        /* Typography */
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        
+        /* Centering the number inside the circle */
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        
+        /* The 'Pop' Factor: High contrast border */
+        /* Use a color that matches your navbar background (e.g., #1a1a1a or #000) */
+        border: 2px solid #1a1a1a !important; 
+        
+        /* Subtle shadow to give it depth */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        
+        padding: 0 !important;
+    }
+
+    /* 4. Optional: Add a slight pulse animation to make notifications noticeable */
+    .notification-badge {
+        animation: badge-pulse 2s infinite;
+    }
+}
+
+@keyframes badge-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+@media (max-width: 576px) {
+    .pc-only-dropdown {
+        display: none !important; /* Forces it to stay hidden on mobile */
+    }
+}
+</style>
+</body>
+</html> 

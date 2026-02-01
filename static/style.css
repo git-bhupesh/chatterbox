@@ -1,0 +1,1633 @@
+/* === Variables & Theme === */
+:root {
+  /* Brand Colors */
+  --primary-color: #4A90E2;
+  --primary-hover: #357ABD;
+  
+  /* Light Palette (Default) */
+  --bg-body: #f0f2f5;
+  --bg-card: #ffffff;
+  --text-main: #333333;
+  --bg-main: #ffffff;
+  --text-muted: #636e72;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  
+  --radius: 12px;
+  --spacing: 1.5rem;
+  --transition-speed: 0.3s;
+  --nav-icon-color: #1a1a1a;
+}
+
+/* This block handles the manual toggle */
+[data-theme="dark"] {
+  --bg-body: #121212;
+  --bg-card: #1e1e1e;
+  --bg-main: #121212;
+  --text-main: #eeeeee;
+  --text-muted: #a0a0a0;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Optional: Keep system preference as a fallback if no preference is saved */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-body: #121212;
+    --bg-card: #1e1e1e;
+    --text-main: #eeeeee;
+    --text-muted: #a0a0a0;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+/* === Global Reset === */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  /* Uses the OS native font for better performance and look */
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  transition: background-color var(--transition-speed);
+}
+
+/* === Layout === */
+.main-content {
+  padding: var(--spacing);
+  background-color: var(--bg-card);
+  max-width: 800px;
+  margin: 2rem auto;
+}
+
+/* === Utility Components === */
+.card {
+  background: var(--bg-card);
+  padding: var(--spacing);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform var(--transition-speed);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.text-muted {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+h1, h2, h3 {
+  margin-top: 0;
+  color: var(--primary-color);
+}
+
+
+/* Theme Toggle Styling */
+.theme-switch-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.theme-switch {
+  display: inline-block;
+  height: 24px;
+  position: relative;
+  width: 45px;
+}
+
+.theme-switch input {
+  display: none;
+}
+
+.slider {
+  background-color: #ccc;
+  bottom: 0;
+  cursor: pointer;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transition: .4s;
+  border-radius: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 4px;
+}
+
+.slider:before {
+  background-color: #fff;
+  bottom: 3px;
+  content: "";
+  height: 18px;
+  left: 3px;
+  position: absolute;
+  transition: .4s;
+  width: 18px;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+input:checked + .slider {
+  background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+  transform: translateX(21px);
+}
+
+.slider .icon {
+  font-size: 10px;
+  user-select: none;
+}
+
+
+
+/* === Navbar === */
+/* === Unified Navbar === */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 5%;
+    background-color: var(--bg-card);
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    height: 70px;
+    gap: 10px; /* Prevents touching */
+}
+
+/* Center Section: Managed Width */
+.navbar-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    max-width: 400px; /* Limits search bar growth on PC */
+}
+
+.search-form-expandable {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-body);
+    border-radius: 50px;
+    padding: 0 15px;
+    height: 40px;
+    width: 100%; 
+    border: 1px solid var(--border-color);
+}
+
+.search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 0.9rem;
+    padding-left: 10px;
+}
+
+/* Right Section: Flex items stay in a row */
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    flex-shrink: 0;
+}
+
+/* === Mobile Responsiveness (Fixed for your SS) === */
+@media (max-width: 768px) {
+    .navbar {
+        height: 60px;
+        padding: 0 10px;
+    }
+
+    /* Hide the search bar on mobile to prevent stacking */
+    /* Users usually prefer a search icon that opens a modal or full-width bar */
+    .navbar-center {
+        display: none; 
+    }
+
+    .logo {
+        font-size: 1.2rem;
+        size: 20px;
+        color: var(--search-text);
+    }
+
+    .navbar-right {
+        gap: 0.8rem;
+    }
+
+    .navbar-avatar {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+/* === Avatar & Image Global Fix === */
+.avatar, 
+.profile-avatar, 
+.navbar-avatar, 
+.avatar-mini {
+  object-fit: cover;
+  aspect-ratio: 1 / 1; /* Forces a perfect square before rounding */
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(0, 0, 0, 0.1);
+  background-color: var(--bg-body); /* Prevents "empty" look if image is slow */
+  display: block;
+}
+
+/* Size Variants */
+.navbar-avatar { width: 35px; height: 35px; }
+.avatar-mini   { width: 42px; height: 42px; }
+.avatar-lg     { width: 100px; height: 100px; }
+
+/* Performance & Interaction */
+.avatar:hover {
+  filter: brightness(0.9);
+  cursor: pointer;
+}
+/* === Post Form / Feed === */
+.post-form-wrapper {
+  background: var(--bg-card);
+  padding: var(--spacing);
+  border-radius: var(--radius);
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow);
+}
+
+.post-form .form-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.post-form textarea {
+  flex: 1;
+  resize: none;
+  height: 80px;
+  padding: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background-color: var(--bg-body);
+  transition: all 0.2s ease;
+}
+
+.post-form textarea:focus {
+  outline: none;
+  background-color: #fff;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+/* === Post Card === */
+.post-card {
+  background: var(--bg-card);
+  padding: var(--spacing);
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* Better for long names */
+  margin-bottom: 12px;
+}
+
+.post-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.post-user-info strong {
+  font-size: 15px;
+  color: var(--text-main);
+}
+
+.post-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: block;
+}
+
+.post-caption {
+  margin: 15px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-main);
+  white-space: pre-wrap; /* Preserves line breaks in user posts */
+}
+
+/* === Action Buttons (Like/Comment) === */
+.post-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background-color: var(--bg-body);
+  color: var(--primary-color);
+}
+
+.action-btn.active {
+  color: var(--primary-color);
+}
+/* === Notification Dropdown Fix === */
+.notification-wrapper {
+  position: relative;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  width: 320px;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #eee;
+  z-index: 2000;
+  padding: 10px 0;
+}
+
+/* Custom File Upload Styling */
+.file-input-hidden {
+  display: none;
+}
+
+.form-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 12px;
+}
+
+.custom-file-label {
+  background: var(--bg-body);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-main);
+  transition: background 0.2s;
+}
+
+.custom-file-label:hover {
+  background: #e1e1e1;
+}
+
+.post-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.post-image {
+  width: 100%;
+  border-radius: 8px;
+  margin-top: 10px;
+  display: block;
+}
+
+/* Placeholder Avatar for users without images */
+.placeholder-avatar {
+  background: var(--primary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* === Comments Section === */
+
+
+
+.comment-bubble {
+  background-color: var(--bg-body);
+  padding: 8px 12px;
+  border-radius: 15px;
+  position: relative;
+  flex: 1;
+}
+
+.comment-author {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  text-decoration: none;
+  margin-bottom: 2px;
+}
+
+.comment-author:hover {
+  text-decoration: underline;
+}
+
+.comment-text {
+  font-size: 14px;
+  margin: 0;
+  color: var(--text-main);
+  word-break: break-word;
+}
+
+.comment-footer {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+  margin-left: 12px;
+}
+
+.comment-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.comment-delete {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.comment-delete:hover {
+  color: #ff4d4f;
+}
+
+/* === Comment Input Area === */
+.comment-form {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.comment-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--bg-body);
+  border-radius: 20px;
+  padding: 5px 15px;
+  border: 1px solid transparent;
+  transition: var(--transition);
+}
+
+.comment-input-wrapper:focus-within {
+  background: #fff;
+  border-color: var(--primary-color);
+}
+
+.comment-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 5px 0;
+  font-size: 14px;
+}
+
+.emoji-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.emoji-btn:hover {
+  opacity: 1;
+}
+
+.comment-submit-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.comment {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+} */
+
+/* === Profile Container === */
+/* ==========================================
+   1. VARIABLES & RESET
+   ========================================== */
+:root {
+    --purple-theme: #8a2be2; /* Example purple if not defined elsewhere */
+    /* --bg-card: #ffffff; */
+    --search-border: #dbdbdb;
+    --search-text: #262626;
+}
+
+
+/* ==========================================
+   2. MAIN CONTAINER LAYOUT
+   ========================================== */
+.profile-header-main {
+    display: flex;
+    gap: 50px;
+    align-items: flex-start;
+    padding: 30px 0;
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--search-border);
+}
+
+/* ==========================================
+   3. AVATAR & IDENTITY
+   ========================================== */
+.profile-avatar-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--purple-theme);
+    padding: 3px;
+    background: white;
+}
+
+.profile-title-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.username-display {
+    font-size: 1.8rem;
+    font-weight: 300;
+}
+
+.real-name {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.bio-text {
+    line-height: 1.4;
+    color: var(--search-text);
+}
+
+/* ==========================================
+   4. STATS SECTION
+   ========================================== */
+.profile-stats-row {
+    display: flex;
+    gap: 30px;
+    margin: 15px 0;
+    background: var(--bg-card);
+}
+
+.stat-box {
+    text-align: left;
+}
+
+.stat-number {
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: block;
+}
+
+.stat-name {
+    color: #8e8e8e;
+    font-size: 0.9rem;
+}
+
+/* ==========================================
+   5. BUTTONS & ACTIONS
+   ========================================== */
+.button-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Base Button Styles */
+.btn-primary-action, 
+.btn-edit-profile,
+.btn-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px; 
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: filter 0.2s, background-color 0.2s;
+}
+
+/* Action Specifics */
+.btn-primary-action, .btn-edit-profile {
+    background-color: var(--purple-theme);
+    color: white;
+    border: none;
+}
+
+.btn-secondary-action {
+    background-color: transparent;
+    border: 1px solid #dbdbdb;
+    color: var(--search-text);
+}
+
+.btn-unfollow {
+    background-color: #efefef !important;
+    color: black !important;
+    border: 1px solid #dbdbdb !important;
+}
+
+.btn-primary-action:hover {
+    filter: brightness(0.9);
+}
+
+/* ==========================================
+   6. RESPONSIVE QUERIES
+   ========================================== */
+
+/* Tablet and below */
+@media (max-width: 768px) {
+    .profile-header-main {
+      background-color: var(--bg-card);
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .profile-title-row {
+        flex-direction: column;
+    }
+}
+
+/* Mobile specific */
+@media (max-width: 576px) {
+    .profile-avatar-img {
+        width: 100px;
+        height: 100px;
+    }
+
+    .profile-stats-row {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+.section-title{
+  background-color: var(--bg-body);
+}
+/* === Post Management Icons === */
+.manage-btn {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-left: 10px;
+    transition: color 0.2s;
+}
+
+.manage-btn.edit:hover { color: var(--primary-color); }
+.manage-btn.delete:hover { color: #ff4d4f; }
+
+/* Container to force horizontal alignment */
+.button-row {
+    display: flex;
+    flex-direction: row; /* Force horizontal */
+    align-items: center;
+    gap: 12px;           /* Space between buttons */
+    margin-top: 15px;
+    flex-wrap: nowrap;   /* Prevent stacking on small screens */
+}
+
+/* Ensure the form doesn't add extra block-level margins */
+.button-row form {
+    display: inline-block;
+    margin: 0;
+}
+
+/* Base button adjustments to ensure equal height */
+.btn {
+    height: 42px; /* Fixed height ensures they line up perfectly */
+    padding: 0 24px;
+    white-space: nowrap; /* Prevent text from wrapping inside buttons */
+}
+
+/* Responsive adjustment for mobile */
+@media (max-width: 480px) {
+    .button-row {
+        gap: 8px;
+    }
+    .btn {
+        padding: 0 15px;
+        font-size: 0.85rem;
+    }
+}
+
+/* Container Padding */
+.edit-profile-container {
+    max-width: 650px;
+    margin: 40px auto;
+}
+
+/* Avatar Styling */
+.profile-avatar-large {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.avatar-upload-badge {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: var(--primary-color);
+    color: white;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 3px solid white;
+    transition: transform 0.2s;
+}
+
+.avatar-upload-badge:hover {
+    transform: scale(1.1);
+    background: var(--primary-hover);
+}
+
+/* Django Form Field Styling */
+.profile-form input, 
+.profile-form textarea, 
+.profile-form select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1.5px solid #eee;
+    background: #fdfdfd;
+    transition: border-color 0.2s;
+}
+
+.profile-form input:focus, 
+.profile-form textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    background: #fff;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.btn-link-muted {
+    text-align: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 10px;
+}
+
+.btn-link-muted:hover {
+    color: var(--text-main);
+}
+
+/* === Edit Post Form === */
+.edit-post-container {
+  background-color: var(--bg-card);
+  padding: 30px;
+  max-width: 650px;
+  margin: 40px auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.edit-post-container h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 25px;
+  color: var(--text-main);
+  text-align: center;
+}
+
+/* Post Image Preview Styling */
+.image-preview-wrapper {
+  background: var(--bg-body);
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+  margin-bottom: 20px;
+  border: 1.5px dashed #ddd;
+}
+
+.edit-post-image-preview {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 6px;
+  object-fit: contain;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* === Full-Page Notifications === */
+.notifications-container {
+  background: var(--bg-card);
+  padding: 30px;
+  max-width: 750px;
+  margin: 40px auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--bg-body);
+}
+
+.notifications-header h2 {
+  font-size: 22px;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.notification-item {
+  display: flex;
+  gap: 15px;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  transition: transform 0.2s, background-color 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.notification-item:hover {
+  background-color: var(--bg-body);
+  transform: translateX(5px);
+}
+
+.notification-item.unread {
+  background-color: #f0f7ff;
+  border-left-color: var(--primary-color);
+}
+
+.notification-item.unread .notification-message {
+  font-weight: 600;
+}
+
+.notification-message {
+  font-size: 15px;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 5px;
+  display: block;
+}
+
+/* Container focus */
+.edit-post-container {
+    max-width: 600px;
+    margin: 40px auto;
+}
+
+/* Image Preview Polish */
+.preview-wrapper {
+    background-color: var(--bg-body);
+    border: 2px dashed #ddd; /* Makes it look like an upload zone */
+    overflow: hidden;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: var(--transition);
+}
+
+.edit-post-image-preview {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: contain;
+    display: block;
+}
+
+.placeholder-box {
+    padding: 40px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+/* Form Input Styling */
+.custom-field-group input, 
+.custom-field-group textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: var(--radius);
+    border: 1.5px solid #eee;
+    background: #fff;
+    transition: border-color 0.2s;
+    font-family: inherit;
+}
+
+.custom-field-group textarea {
+    height: 120px;
+    resize: none;
+}
+
+.custom-field-group input:focus, 
+.custom-field-group textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+/* Discard link */
+.btn-link-muted {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.btn-link-muted:hover {
+    color: #dc3545; /* Red on hover to signify "Discard" */
+}
+
+/* Hide the default Django file links and checkboxes */
+.edit-post-form input[type="checkbox"] {
+    display: none;
+}
+
+/* Style the 'Remove Image' button when the checkbox is checked */
+.btn-check:checked + .btn-outline-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.file-upload-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.custom-file-label {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.custom-file-label:hover {
+    background-color: var(--primary-hover);
+}
+
+/* === Modern Save Button === */
+.save-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 50px; /* Pill shape */
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Space between icon and text */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.save-btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px); /* Slight lift */
+  box-shadow: 0 6px 12px rgba(74, 144, 226, 0.3);
+}
+
+.save-btn:active {
+  transform: translateY(0);
+}
+
+/* === Refined Discard Link === */
+.btn-link-muted {
+  text-decoration: none;
+  color: #999;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 15px;
+  transition: color 0.2s;
+}
+
+.btn-link-muted:hover {
+  color: #ff4d4f; /* Soft red for "Discard" */
+}
+
+/* Container for the actions */
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+/* === Notification Dropdown Polish === */
+.notification-dropdown {
+  position: absolute;
+  top: 40px; 
+  right: 0;
+  width: 350px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0,0,0,0.05);
+  z-index: 1000;
+  display: none;
+  overflow: hidden; /* Keeps the list items from breaking corners */
+}
+
+.dropdown-header {
+  padding: 12px 15px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #eee;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Scrollbar Styling for the list */
+.notification-dropdown .notifications-list::-webkit-scrollbar {
+  width: 6px;
+}
+.notification-dropdown .notifications-list::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 10px;
+}
+
+.notification-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 15px;
+  transition: background 0.2s;
+  text-decoration: none;
+  color: inherit;
+  align-items: center;
+}
+
+.notification-item:hover {
+  background-color: #f0f7ff;
+}
+
+.notification-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.notification-body {
+  flex: 1;
+}
+
+.notification-text {
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.4;
+  color: #333;
+}
+
+.notification-text strong {
+  color: #000;
+}
+
+.notification-time {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+/* Unread State */
+.notification-item.unread {
+  background-color: #f4f9ff;
+  border-left: 3px solid #4A90E2;
+}
+
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #4A90E2;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+
+/* === Chat Room Layout === */
+.chat-room-container, .chat-room-box {
+    max-width: 600px;
+    margin: 20px auto;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 80vh; /* Better for long conversations */
+    border: 1px solid var(--border-color);
+}
+
+/* Header Area */
+/* Container for the header elements */
+.chat-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    /* Sticky ensures the header stays visible while scrolling messages */
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* The New Back Button Style */
+.back-btn {
+    text-decoration: none;
+    color: var(--text-main);
+    font-size: 1.2rem;
+    margin-right: 15px; /* Space between arrow and avatar */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.back-btn:hover {
+    color: #0084ff; /* Brand color highlight */
+    transform: translateX(-3px); /* Subtle slide effect */
+}
+
+/* Existing Avatar & Name (kept for consistency) */
+.chat-header-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.chat-header-name {
+    font-weight: 700;
+    color: var(--text-main);
+    text-decoration: none;
+    font-size: 1.1rem;
+}
+
+/* Message Area */
+.chat-scroll, .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: var(--bg-body); /* Slightly different from card for depth */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* === Message Bubbles === */
+.bubble {
+    display: flex;
+    align-items: flex-end;
+    max-width: 85%;
+    gap: 8px;
+}
+
+.bubble.me {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.bubble.them {
+    align-self: flex-start;
+}
+
+.bubble-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.bubble-body {
+    padding: 10px 16px;
+    border-radius: 18px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Colors - Theme Aware */
+.bubble.me .bubble-body {
+    background: var(--primary-color);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.bubble.them .bubble-body {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-bottom-left-radius: 4px;
+}
+
+.bubble-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin: 4px 8px;
+    align-self: flex-end;
+}
+
+/* === Input Bar === */
+.input-bar, .chat-input-form {
+    display: flex;
+    padding: 15px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    gap: 10px;
+    align-items: center;
+}
+
+.input-bar input {
+    flex: 1;
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: 25px;
+    padding: 10px 18px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-bar input:focus {
+    border-color: var(--primary-color);
+}
+
+.send-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.send-btn:hover {
+    transform: scale(1.05);
+    background: var(--primary-hover);
+}
+
+
+/* Modern Circular Logout Button */
+.logout-btn-styled {
+    background: rgba(255, 69, 58, 0.1); /* Soft transparent red */
+    border: 1px solid rgba(255, 69, 58, 0.2);
+    color: #ff453a; /* Bright red icon */
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.logout-btn-styled i {
+    font-size: 1.1rem;
+}
+
+.logout-btn-styled:hover {
+    background: #ff453a; /* Solid red on hover */
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 69, 58, 0.3);
+}
+
+.logout-btn-styled:active {
+    transform: translateY(0);
+}
+
+/* Ensure the form doesn't add extra spacing */
+.logout-form {
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+
+
+
+@media (max-width: 768px) {
+  /* 1. Full-Width Containers */
+  .post-form-wrapper, 
+.post-card {
+        margin: 10px 0 !important;
+        width: 100% !important;
+        border-radius: 0 !important; /* Edge-to-edge look like Instagram/X */
+        padding: 12px !important;
+    }
+    .main-content {
+        padding: 0 !important; /* Remove main container padding to let cards hit the edges */
+        background-color: var(--bg-card);
+    }
+
+  /* 2. Better Typography */
+  .post-user-info strong {
+    font-size: 16px; /* Larger for better readability */
+  }
+
+  .post-caption {
+    font-size: 16px; /* Standard mobile reading size */
+    margin: 10px 0;
+  }
+
+  /* 3. Thumb-Friendly Post Input */
+  .post-form textarea {
+    font-size: 16px; /* Prevents iOS from zooming in on focus */
+    height: 100px; /* More room to type */
+    border-radius: 12px;
+  }
+
+  /* 4. Action Buttons (Like/Comment) */
+  .post-actions {
+    justify-content: space-around; /* Distributes buttons evenly for thumbs */
+    gap: 0;
+    border-top: 1px solid var(--search-border);
+  }
+
+  .action-btn {
+    flex: 1; /* Each button takes up equal space */
+    justify-content: center;
+    font-size: 15px;
+    padding: 12px 0; /* Larger touch target */
+  }
+}
+
+@media (max-width: 768px) {
+    /* Make comments look nested */
+    .comment-item {
+        margin-left: 10px;
+        padding: 8px 12px;
+        background: var(--search-bg); /* Use themed background */
+        border-radius: 12px;
+        margin-top: 5px;
+    }
+
+    /* Soften the post images */
+    .post-image {
+        border-radius: 4px; /* Slight roundness looks more modern than sharp edges */
+        border: 1px solid var(--search-border);
+    }
+}
+
+/* Online Status Animation */
+.online-dot {
+    box-shadow: 0 0 0 0 rgba(76, 209, 55, 1);
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 209, 55, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(76, 209, 55, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 209, 55, 0); }
+}
+
+/* Tick Colors for 'Seen' */
+.ticks.read {
+    color: #3498db; /* Blue ticks when seen */
+    font-weight: bold;
+}
+
+/* Default tick color (Sent) */
+.ticks {
+    color: #95a5a6;
+    font-size: 0.8rem;
+    transition: color 0.3s ease;
+}
+
+/* Blue tick color (Seen/Read) */
+/* Styling for the Read Receipts */
+.ticks {
+    font-size: 0.8rem;
+    transition: color 0.3s ease;
+}
+
+.ticks.read {
+    color: #87CEBB !important; /* The signature blue from your screenshots */
+    text-shadow: 0px 0px 2px rgba(0,0,0,0.2);
+}
+
+/* Ensure the message footer aligns properly */
+.bubble-body div[style*="justify-content: flex-end"] {
+    margin-top: 4px;
+    line-height: 1;
+}
+
+/* Add this to your <style> section */
+.bubble-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 80px; /* Ensures there is always room for the ticks and avatar */
+}
+
+.bubble-text {
+    word-wrap: break-word;
+    margin-bottom: 2px;
+}
+
+/* Mobile Optimization */
+@media (max-width: 576px) {
+    /* 1. Make the container full screen */
+    .chat-room-box {
+        height: 100vh !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 2. Compact Header */
+    .chat-header {
+        padding: 10px 15px !important;
+        background: #fff;
+        border-bottom: 1px solid #eee;
+    }
+
+    /* 3. Message Bubble Adjustments */
+    .bubble {
+        max-width: 85% !important; /* Give bubbles more room */
+        margin-bottom: 8px !important;
+    }
+
+    .bubble-avatar {
+        width: 30px !important;
+        height: 30px !important;
+    }
+
+    .msg-image {
+        max-width: 100% !important; /* Full width images in bubbles */
+        height: auto;
+    }
+
+    /* 4. Cleaner Input Area */
+    .chat-footer {
+        padding: 10px !important;
+        background: #f8f9fa;
+    }
+
+    #msg-input {
+        font-size: 16px; /* Prevents iOS auto-zoom on focus */
+        padding: 8px 15px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    /* 1. Make the chat full-screen (removes the gray border) */
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .chat-room-box {
+        height: 100vh !important; /* Uses full screen height */
+        width: 100vw !important;  /* Uses full screen width */
+        margin: 0 !important;
+        border-radius: 0 !important;
+        border: none !important;
+    }
+
+    /* 2. Slim down the header */
+    .chat-header {
+        padding: 8px 12px !important;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .chat-header img {
+        width: 35px !important;
+        height: 35px !important;
+    }
+
+    /* 3. Improve the bubbles for smaller screens */
+    .bubble {
+        max-width: 85% !important; /* More space for text */
+        margin: 5px 10px !important;
+    }
+
+    .bubble-avatar {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    /* 4. Fix image captions */
+    .bubble-text {
+        padding: 4px 8px 8px 8px !important;
+        font-size: 14px;
+    }
+  }
+
+.chat-footer form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+#image-preview-container {
+    background: #f8f9fa;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    align-items: center;
+    gap: 12px;
+}
+
+#image-preview {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #3b82f6;
+}
+

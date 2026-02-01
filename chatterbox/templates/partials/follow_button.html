@@ -1,0 +1,18 @@
+<div id="follow-button-container">
+  {% if is_following %}
+    <button class="unfollow-btn" 
+            hx-post="{% url 'unfollow_user' profile_user.username %}" 
+            hx-target="#follow-wrapper" 
+            hx-swap="innerHTML">
+      Unfollow
+    </button>
+    <a href="{% url 'start_private_chat' profile_user.username %}" class="message-btn">💬 Message</a>
+  {% else %}
+    <button class="follow-btn" 
+            hx-post="{% url 'follow_user' profile_user.username %}" 
+            hx-target="#follow-wrapper" 
+            hx-swap="innerHTML">
+      Follow
+    </button>
+  {% endif %}
+</div>

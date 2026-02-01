@@ -1,0 +1,378 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="chat-wrapper">
+    <div class="chat-container shadow">
+        
+        {# --- HEADER --- #}
+        <div class="chat-list-header">
+            <h2 class="m-0">Messages</h2>
+            <div class="header-actions">
+                <a href="{% url 'start_group_chat' %}" class="action-btn" title="Create Group">
+                    <i class="fa-solid fa-users-plus"></i>
+                </a>
+            </div>
+        </div>
+
+        {# --- SEARCH BAR --- #}
+        <div class="px-3 mb-3">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="chatSearch" placeholder="Search chats..." onkeyup="filterChats()">
+            </div>
+        </div>
+
+        {# --- CHAT LIST --- #}
+        <div class="chat-scroll-area" id="chatList">
+            {% for entry in rooms %}
+                <a href="{% url 'chat_room' entry.room.id %}" class="chat-card-link">
+                    <div class="chat-card {% if entry.latest_message and request.user not in entry.latest_message.read_by.all and entry.latest_message.sender != request.user %}unread{% endif %}">
+                        
+                        {# Avatar - FIXED SIZE CONTAINER #}
+                        <div class="avatar-col">
+                            {% if not entry.room.is_group and entry.partner %}
+                                <div class="avatar-wrapper">
+                                    <img src="{{ entry.partner.profile.avatar.url|default:'/static/default-avatar.png' }}" 
+                                         alt="avatar" class="chat-avatar">
+                                    <span class="status-indicator online"></span>
+                                </div>
+                            {% else %}
+                                <div class="group-avatar">
+                                    <i class="fa-solid fa-user-group"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {# Chat Content #}
+                        <div class="chat-details">
+                            <div class="chat-top-row">
+                                <span class="chat-name">
+                                    {% if not entry.room.is_group and entry.partner %}
+                                        {{ entry.partner.get_full_name|default:entry.partner.username }}
+                                    {% else %}
+                                        {{ entry.room.name }}
+                                    {% endif %}
+                                </span>
+                                {% if entry.latest_message %}
+                                    <span class="chat-time">{{ entry.latest_message.timestamp|timesince }} ago</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="chat-bottom-row">
+                                <p class="message-preview">
+                                    {% if entry.latest_message %}
+                                        <span class="sender-tag">
+                                            {% if entry.latest_message.sender == request.user %}You: {% endif %}
+                                        </span>
+                                        {{ entry.latest_message.content|truncatechars:40 }}
+                                    {% else %}
+                                        <span class="first-wave">No messages yet. Say hi! 👋</span>
+                                    {% endif %}
+                                </p>
+                                
+                                {% if entry.unread_count %}
+                                    <span class="unread-badge">{{ entry.unread_count }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            {% empty %}
+                <div class="empty-state text-center py-5">
+                    <p class="text-muted">No conversations yet.</p>
+                    <a href="{% url 'feed' %}" class="btn btn-primary btn-sm">Find People</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* --- Layout & Theme Sync --- */
+.chat-wrapper {
+    background: var(--bg-body, #f0f2f5);
+    min-height: 90vh;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.chat-container {
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg-card, #ffffff);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color, #ddd);
+    height: fit-content;
+    max-height: 85vh;
+}
+
+.chat-list-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-main, #1c1e21);
+}
+
+.action-btn {
+    color: var(--text-main);
+    font-size: 1.2rem;
+    opacity: 0.8;
+}
+
+/* --- Search Bar --- */
+.search-box {
+    background: var(--bg-input, #f0f2f5);
+    padding: 8px 15px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    color: var(--text-main);
+    font-size: 0.9rem;
+}
+
+/* --- Chat Cards --- */
+.chat-card-link { text-decoration: none !important; color: inherit; }
+
+.chat-card {
+    display: flex;
+    padding: 12px 16px;
+    gap: 15px;
+    transition: 0.2s;
+    border-bottom: 1px solid var(--border-color, #f0f0f0);
+    align-items: center;
+    position: relative; /* Added: Crucial for the blue dot positioning */
+}
+
+.chat-card:hover { 
+    background: var(--bg-hover, rgba(0,0,0,0.03)); 
+}
+
+/* --- Unread State Styling --- */
+.chat-card.unread {
+    background-color: rgba(0, 132, 255, 0.07); /* Subtle blue tint */
+}
+
+/* The Blue Dot Indicator */
+.chat-card.unread::after {
+    content: '';
+    position: absolute;
+    right: 20px; /* Positions it on the far right */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background-color: #0084ff;
+    border-radius: 50%;
+}
+
+.chat-card.unread .message-preview {
+    font-weight: 700;
+    color: var(--text-main, #000) !important;
+}
+
+.chat-card.unread .chat-name {
+    color: #0084ff; 
+}
+
+/* Avatar Column */
+.avatar-col {
+    flex-shrink: 0;
+    width: 55px;
+    height: 55px;
+}
+
+.avatar-wrapper {
+    position: relative;
+    width: 55px;
+    height: 55px;
+}
+
+.chat-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    background: #eee;
+}
+
+.status-indicator {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background: #42b72a;
+    border: 2px solid var(--bg-card, white);
+    border-radius: 50%;
+}
+
+.group-avatar {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: #e4e6eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #65676b;
+}
+
+/* Details Column */
+.chat-details {
+    flex-grow: 1;
+    min-width: 0; 
+    padding-right: 20px; /* Space for the blue dot */
+}
+
+.chat-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-name {
+    font-weight: 600;
+    color: var(--text-main, #1c1e21);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-time {
+    font-size: 0.75rem;
+    color: var(--text-muted, #888);
+}
+
+.chat-bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.message-preview {
+    font-size: 0.85rem;
+    color: var(--text-muted, #65676b);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.unread-badge {
+    background: #0084ff;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+</style>
+
+<script>
+// Real-time Search Logic
+function filterChats() {
+    let input = document.getElementById('chatSearch').value.toLowerCase();
+    let chatCards = document.querySelectorAll('.chat-card-link');
+
+    chatCards.forEach(card => {
+        let name = card.querySelector('.chat-name').innerText.toLowerCase();
+        if (name.includes(input)) {
+            card.style.display = "";
+        } else {
+            card.style.display = "none";
+        }
+    });
+}
+</script>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<h2>Your Chats</h2>
+
+<div class="chat-list">
+  {% for entry in rooms %}
+    <div class="chat-item">
+      <a href="{% url 'chat_room' entry.room.id %}" class="chat-link">
+        {% if not entry.room.is_group and entry.partner %}
+          <img src="{{ entry.partner.profile.avatar.url }}" alt="avatar" class="chat-avatar">
+          <strong>
+            {% if entry.partner.get_full_name %}
+            {{ entry.partner.get_full_name }}
+            {% else %}
+            {{ entry.partner.username }}
+            {% endif %}
+            </strong>
+
+        {% elif entry.room.is_group %}
+          <strong>{{ entry.room.name }}</strong>
+        {% endif %}
+      </a>
+      <p class="latest-msg">
+        {% if entry.latest_message %}
+          <small>
+            <strong>{{ entry.latest_message.sender.username }}:</strong>
+            {{ entry.latest_message.content|truncatechars:40 }}
+          </small>
+        {% else %}
+          <small>No messages yet.</small>
+        {% endif %}
+      </p>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+
+{% comment %} {% extends 'base.html' %}
+{% block content %}
+<h2>Your Chats</h2>
+
+<div class="chat-list">
+  {% for entry in rooms %}
+    <div class="chat-item">
+      <a href="{% url 'chat_room' entry.room.id %}">
+        <strong>
+          {% if entry.room.is_group %}
+            {{ entry.room.name }}
+          {% else %}
+            {% for user in entry.room.participants.all %}
+              {% if user != request.user %}
+                {{ user.username }}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        </strong>
+      </a>
+      <p class="latest-msg">
+        {% if entry.latest_message %}
+          <small><strong>{{ entry.latest_message.sender.username }}:</strong> {{ entry.latest_message.content|truncatechars:40 }}</small>
+        {% else %}
+          <small>No messages yet.</small>
+        {% endif %}
+      </p>
+    </div>
+     <div class="chat-actions">
+    <a href="{% url 'start_private_chat' 'someusername' %}" class="chat-button">➕ Chat with Friend</a>
+    <a href="{% url 'start_group_chat' %}" class="chat-button">👥 Create Group Chat</a>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %} {% endcomment %} 

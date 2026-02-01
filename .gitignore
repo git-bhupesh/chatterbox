@@ -1,0 +1,14 @@
+# Environments
+venv/
+.venv/
+env/
+
+# Database
+db.sqlite3
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Media & Static (Optional, usually kept local)
+media/

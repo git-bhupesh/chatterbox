@@ -1,0 +1,21 @@
+# Core Framework & HTMX
+Django>=5.0,<6.0
+django-htmx==1.17.3
+
+# Real-time (Chat & Typing Indicators)
+daphne==4.1.2
+channels==4.2.2
+channels-redis==4.2.1
+django-redis==5.4.0
+
+# Task Queue (Background Tasks)
+celery==5.4.0
+redis==5.0.1
+
+# Image & Media Handling
+Pillow==10.3.0
+cloudinary==1.41.0
+django-cloudinary-storage==0.3.0
+
+# Environment & Utilities
+python-dotenv==1.0.1

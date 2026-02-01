@@ -1,0 +1,206 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join ChatterBox | Sign Up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="auth-body">
+
+<div class="auth-wrapper">
+    <div class="auth-card signup-card">
+        <div class="auth-logo">
+            <i class="fa-solid fa-comments"></i>
+            <h1>ChatterBox</h1>
+        </div>
+        
+        <h2>Create Account</h2>
+        <p class="auth-subtitle">Join the community today!</p>
+
+        {# --- ERROR DISPLAY --- #}
+        {% if form.errors %}
+            <div class="error-banner">
+                <ul class="mb-0 text-start">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="row-inputs">
+                <div class="form-group">
+                    <label for="id_username"><i class="fa-solid fa-at"></i> Username</label>
+                    {{ form.username }}
+                </div>
+            </div>
+
+            <div class="row-inputs d-flex gap-2">
+                <div class="form-group w-50">
+                    <label for="id_first_name">First Name</label>
+                    {{ form.first_name }}
+                </div>
+                <div class="form-group w-50">
+                    <label for="id_last_name">Last Name</label>
+                    {{ form.last_name }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_dob"><i class="fa-solid fa-cake-candles"></i> Date of Birth</label>
+                {{ form.dob }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_email"><i class="fa-solid fa-envelope"></i> Email</label>
+                {{ form.email }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_password1"><i class="fa-solid fa-key"></i> Password</label>
+                {{ form.password1 }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_password2"><i class="fa-solid fa-shield-check"></i> Confirm Password</label>
+                {{ form.password2 }}
+            </div>
+
+            <button type="submit" class="auth-btn mt-3">Create My Account</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Already have an account? <a href="{% url 'login' %}">Log in here</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Inherits general styles from Login, with signup-specific tweaks */
+    .auth-body { 
+        background-color: #f0f2f5; 
+        min-height: 100vh; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        padding: 40px 0;
+    }
+
+    .signup-card { max-width: 500px; } /* Slightly wider for side-by-side names */
+
+    .form-group { text-align: left; margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 5px; }
+    
+    .auth-form input {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    .auth-form input:focus { border-color: #007bff; }
+
+    .d-flex { display: flex; }
+    .gap-2 { gap: 10px; }
+    .w-50 { width: 50%; }
+
+    .error-banner {
+        background: #fff0f0;
+        color: #d93025;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.85rem;
+        border: 1px solid #ffdada;
+    }
+    .error-banner ul { list-style: none; padding-left: 0; }
+
+    .auth-btn {
+        width: 100%;
+        padding: 12px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    // Ensure the DOB field is treated as a date picker by the browser
+    document.getElementById('id_dob').setAttribute('type', 'date');
+</script>
+
+</body>
+</html>
+
+{% comment %} {% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<div class="auth-container">
+    <h2>Sign Up</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <label for="id_username">Username</label>
+        {{ form.username }}
+
+        <label for="id_first_name">First Name</label>
+        {{ form.first_name }}
+
+        <label for="id_last_name">Last Name</label>
+        {{ form.last_name }}
+
+        <label for="id_dob">Date of Birth</label>
+        {{ form.dob }}
+
+        <label for="id_email">Email</label>
+        {{ form.email }}
+
+        <label for="id_password1">Password</label>
+        {{ form.password1 }}
+
+        <label for="id_password2">Confirm Password</label>
+        {{ form.password2 }}
+
+        <!-- ✅ Place error block here -->
+        {% if form.errors %}
+            <ul style="color: red; margin-top: 10px; margin-bottom: 10px;">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li><strong>Error:</strong> {{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <button type="submit">Sign Up</button>
+    </form>
+
+    <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+</div>
+</body>
+</html> {% endcomment %}

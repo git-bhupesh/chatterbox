@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="post-detail-container card shadow-sm">
+
+    <div class="post-header p-3 d-flex justify-content-between align-items-center">
+        <div class="post-user-info">
+            <a href="{% url 'profile' username=post.author.username %}" class="text-decoration-none text-dark d-flex align-items-center">
+                <img src="{{ post.author.profile.avatar.url|default:'/static/default-avatar.png' }}" alt="Avatar" class="avatar-mini rounded-circle me-2" width="40" height="40">
+                <strong class="username">{{ post.author.username }}</strong>
+            </a>
+        </div>
+        <span class="timestamp text-muted small">{{ post.created_at|date:"M d, Y • H:i" }}</span>
+    </div>
+
+    {% if post.image %}
+    <div class="post-image-wrapper">
+        <img src="{{ post.image.url }}" class="img-fluid w-100" alt="Post Image" style="max-height: 600px; object-fit: contain; background: #fafafa;">
+    </div>
+    {% endif %}
+
+    <div class="post-body p-3">
+        {% include "partials/like_button.html" %}
+        
+        <p class="caption mt-3 mb-0">
+            <strong>{{ post.author.username }}</strong> {{ post.caption }}
+        </p>
+    </div>
+
+    <hr class="my-0">
+
+    <div class="comments-section p-3 bg-light">
+        <h5 class="mb-3"><i class="fa-regular fa-comments"></i> Comments</h5>
+        
+        <div id="comments-list-{{ post.id }}">
+            {% for comment in post.comments.all %}
+                <div class="comment-item mb-2 pb-2 border-bottom">
+                    <div class="d-flex justify-content-between">
+                        <span>
+                            <strong class="small">{{ comment.user.username }}</strong> 
+                            <span class="comment-text small ms-1">{{ comment.content }}</span>
+                        </span>
+                        {% if user == comment.user %}
+                            <a href="{% url 'edit_comment' comment.id %}" class="text-muted small text-decoration-none">edit</a>
+                        {% endif %}
+                    </div>
+                    <div class="comment-time text-muted" style="font-size: 0.75rem;">{{ comment.created_at|timesince }} ago</div>
+                </div>
+            {% empty %}
+                <p class="no-comment text-muted italic small">No comments yet. Start the conversation!</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="comment-form-wrapper p-3 border-top bg-white sticky-bottom">
+        <form 
+            method="POST" 
+            hx-post="{% url 'comment_post' post.id %}" 
+            hx-target="#comments-list-{{ post.id }}" 
+            hx-swap="innerHTML"
+            class="d-flex gap-2 align-items-center">
+            {% csrf_token %}
+            
+            <img src="{{ request.user.profile.avatar.url|default:'/static/default-avatar.png' }}" class="avatar-mini rounded-circle" width="30" height="30">
+            
+            <input type="text" 
+                   name="content" 
+                   class="form-control rounded-pill border-muted bg-light" 
+                   placeholder="Add a comment..." 
+                   required
+                   onkeydown="if(event.keyCode==13 && !event.shiftKey) { this.form.dispatchEvent(new Event('submit')); this.value = ''; }">
+            
+            <button type="submit" class="btn btn-link text-primary fw-bold text-decoration-none">Post</button>
+        </form>
+    </div>
+
+</div>
+
+<style>
+    .post-detail-container { max-width: 700px; margin: 20px auto; border-radius: 12px; overflow: hidden; }
+    .avatar-mini { object-fit: cover; }
+    .comment-item:last-child { border-bottom: none !important; }
+    .comment-form-wrapper input:focus { box-shadow: none; border-color: #dee2e6; background: #fff !important; }
+</style>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="post-detail-container">
+
+  <!-- Post Header -->
+  <div class="post-detail-header">
+    <a href="{% url 'profile' username=post.author.username %}" class="post-user-link">
+      <img src="{{ post.author.profile.avatar.url }}" alt="Avatar" class="avatar-mini">
+      <strong class="username">{{ post.author.username }}</strong>
+    </a>
+    <span class="timestamp">{{ post.created_at|date:"M d, H:i" }}</span>
+  </div>
+
+  <!-- Post Image -->
+  {% if post.image %}
+    <div class="post-image-container">
+      <img src="{{ post.image.url }}" class="post-detail-image" alt="Post Image">
+    </div>
+  {% endif %}
+
+  <!-- Post Caption -->
+  <p class="caption">{{ post.caption }}</p>
+
+  <hr>
+
+  <!-- Comments -->
+  <div class="comments-section">
+    <h4>Comments</h4>
+    {% if post.comments.all %}
+      {% for comment in post.comments.all %}
+        <div class="comment">
+          <div>
+            <strong>{{ comment.user.username }}</strong>: {{ comment.content }}
+          </div>
+          <div class="comment-time">{{ comment.created_at|timesince }} ago</div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="no-comment">No comments yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Add Comment Form -->
+  <form method="POST" action="{% url 'post_detail' post.id %}" class="comment-form">
+    {% csrf_token %}
+    <input type="text" name="text" placeholder="Write a comment..." required>
+    <button type="submit">Post</button>
+  </form>
+
+</div>
+{% endblock %} {% endcomment %}

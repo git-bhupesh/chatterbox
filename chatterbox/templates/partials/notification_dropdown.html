@@ -1,0 +1,177 @@
+<div class="dropdown-header">
+    <span>Recent Notifications</span>
+    <a href="#" 
+       hx-post="{% url 'mark_all_read' %}" 
+       hx-target="#notification-dropdown" 
+       hx-swap="innerHTML"
+       class="mark-all-link">Mark all read</a>
+</div>
+
+<ul class="notifications-list">
+    {% for note in notifications %}
+        <li class="notification-item {% if not note.is_read %}unread{% endif %}">
+            <a href="{% url 'read_and_redirect' note.id %}">
+                <div class="notif-content">
+                    <strong>{{ note.sender.username }}</strong> {{ note.notification_type }}ed your post
+                    <span class="notification-time">{{ note.timestamp|timesince }} ago</span>
+                </div>
+                {% if not note.is_read %}<div class="unread-dot"></div>{% endif %}
+            </a>
+        </li>
+    {% empty %}
+        <li class="no-info p-3 text-center">No notifications yet.</li>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'notifications' %}" class="view-all-btn">View All</a>
+<style>
+/* Container Box - The main wrapper */
+.notification-dropdown {
+    display: none; /* Controlled by your JavaScript */
+    position: absolute;
+    right: 0;
+    top: 110%; /* Positions it slightly below the bell icon */
+    width: 340px; /* Fixed width prevents horizontal stretching */
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e1e4e8;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+/* Header - This fixes the overlapping text from your screenshot */
+.dropdown-header {
+    display: flex;
+    justify-content: space-between; /* Pushes items to opposite sides */
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    background-color: #fafbfc;
+}
+
+.dropdown-header span {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.mark-all-link {
+    font-size: 0.8rem;
+    color: #6f42c1; /* Purple theme */
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.mark-all-link:hover {
+    color: #5a32a3;
+    text-decoration: underline;
+}
+
+/* The Scrollable List Area */
+.notifications-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 380px; /* Prevents the dropdown from becoming too long */
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+    background-color: #f0f7ff; /* Subtle blue for unread items */
+}
+
+/* Content Layout inside each item */
+.notification-item a {
+    text-decoration: none;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.notif-content {
+    font-size: 0.85rem;
+    color: #444;
+    line-height: 1.5;
+    flex: 1; /* Takes up remaining space */
+}
+
+.notif-content strong {
+    color: #000;
+}
+
+.notification-time {
+    display: block;
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 4px;
+}
+
+/* Unread Dot Indicator */
+.unread-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #007bff;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+}
+
+/* View All Footer */
+.view-all-btn {
+    display: block;
+    text-align: center;
+    padding: 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #6f42c1;
+    text-decoration: none;
+    background-color: #ffffff;
+    border-top: 1px solid #f0f0f0;
+    transition: background 0.2s;
+}
+
+.view-all-btn:hover {
+    background-color: #f8f9fa;
+}
+
+/* Empty State Styling */
+.no-info {
+    padding: 30px 16px;
+    color: #777;
+    font-size: 0.85rem;
+}
+</style>
+
+
+{% comment %} {% load humanize %}
+{% if notifications %}
+  <ul class="notifications-list">
+    {% for n in notifications|slice:":5" %} {# show latest 5 #}
+      <li class="notification-item {% if not n.is_read %}unread{% endif %}">
+        <a href="{% url 'read_and_redirect' n.id %}">
+          {% if n.notification_type == 'like' %}
+            <strong>{{ n.sender.username }}</strong> liked your post.
+          {% elif n.notification_type == 'comment' %}
+            <strong>{{ n.sender.username }}</strong> commented: "{{ n.comment }}"
+          {% endif %}
+        </a>
+        <div class="notification-time">{{ n.timestamp|naturaltime }}</div>
+      </li>
+    {% endfor %}
+  </ul>
+  <a href="{% url 'notifications' %}" class="view-all-btn">View all →</a>
+{% else %}
+  <p class="no-info">No notifications yet.</p>
+{% endif %} {% endcomment %}

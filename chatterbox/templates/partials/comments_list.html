@@ -1,0 +1,54 @@
+{% comment %} {% for comment in post.comments.all %}
+  <div class="comment">
+    <p>
+      <strong>{{ comment.user.username }}</strong>: {{ comment.content }}
+      {% if user == comment.user %}
+        <a href="{% url 'edit_comment' comment.id %}" title="Edit Comment">✏️</a>
+        <a href="{% url 'delete_comment' comment.id %}" title="Delete Comment">🗑️</a>
+      {% endif %}
+    </p>
+  </div>
+{% endfor %} {% endcomment %}
+{% for comment in post.comments.all %}
+  {% if not comment.is_deleted %}
+    <div class="comment" id="comment-{{ comment.id }}">
+      
+      {% if comment.user.profile.avatar %}
+        <img src="{{ comment.user.profile.avatar.url }}" class="navbar-avatar" style="width: 32px; height: 32px;" alt="Avatar">
+      {% else %}
+        <div class="avatar-mini placeholder-avatar" style="width: 32px; height: 32px; font-size: 11px;">
+          {{ comment.user.username|first|upper }}
+        </div>
+      {% endif %}
+
+      <div class="comment-content-wrapper" style="flex: 1;">
+        <div class="comment-bubble">
+          <a href="{% url 'profile' comment.user.username %}" class="comment-author">
+            {{ comment.user.username }}
+          </a>
+          <p class="comment-text">{{ comment.content }}</p>
+        </div>
+        
+        <div class="comment-footer" style="margin-left: 10px; margin-top: 4px; display: flex; gap: 12px; align-items: center;">
+          <span class="comment-time" style="font-size: 11px; color: var(--text-muted);">
+            {{ comment.created_at|timesince }} ago
+          </span>
+
+          {% if user == comment.user or user == post.author %}
+            <a href="#" 
+               hx-delete="{% url 'delete_comment' comment.id %}" 
+               hx-target="#comment-{{ comment.id }}" 
+               hx-swap="outerHTML"
+               hx-confirm="Are you sure you want to delete this comment?"
+               class="comment-delete" 
+               style="font-size: 11px; font-weight: 600; text-decoration: none;">
+               Delete
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% empty %}
+  <p class="no-comments" style="color: var(--text-muted); font-style: italic; padding: 10px;">No comments yet.</p>
+{% endfor %}

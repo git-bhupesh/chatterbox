@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="chat-lobby-container">
+    <div class="lobby-header">
+        <h2>💬 Chat Lobby</h2>
+        <p class="text-muted">Select a room to start messaging or create your own.</p>
+    </div>
+
+    {# ---------- ROOM LIST ---------- #}
+    <div class="room-section">
+        <h3>Available Rooms</h3>
+        <ul class="lobby-list">
+            {% for room in rooms %}
+                <li class="lobby-item">
+                    <a href="{% url 'chat_room' room.id %}" class="room-link">
+                        <span class="room-name">{{ room.name }}</span>
+                        {% if room.is_group %}
+                            <span class="badge badge-group">Group</span>
+                        {% else %}
+                            <span class="badge badge-private">Private</span>
+                        {% endif %}
+                    </a>
+                    <small class="participant-count">{{ room.participants.count }} members</small>
+                </li>
+            {% empty %}
+                <li class="no-rooms">No rooms available. Create the first one!</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <hr>
+
+    {# ---------- CREATE ROOM FORM ---------- #}
+    <div class="create-room-section">
+        <h3>Create New Chat Room</h3>
+        <form method="post" class="lobby-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="text" name="room_name" placeholder="Enter room name..." required class="form-control">
+            </div>
+            <div class="form-check my-2">
+                <input type="checkbox" name="is_group" id="is_group" class="form-check-input">
+                <label for="is_group" class="form-check-label">Make this a Group Chat</label>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">🚀 Create & Join</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .chat-lobby-container { max-width: 500px; margin: 0 auto; padding: 20px; }
+    .lobby-list { list-style: none; padding: 0; }
+    .lobby-item { 
+        background: #fff; 
+        border: 1px solid #ddd; 
+        margin-bottom: 10px; 
+        padding: 15px; 
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .room-link { text-decoration: none; color: #333; font-weight: bold; }
+    
+    /* Badges */
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 10px; }
+    .badge-group { background: #e3f2fd; color: #0d47a1; }
+    .badge-private { background: #f3e5f5; color: #4a148c; }
+    
+    .lobby-form input[type="text"] { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+    .participant-count { color: #888; }
+</style>
+{% endblock %}
+
+{% comment %} {% extends "base.html" %}
+
+{% block content %}
+<div class="chat-room-list">
+  <h2>Chat Rooms</h2>
+  <ul>
+    {% for room in rooms %}
+      <li>
+        <a href="{% url 'chat_room' room.name %}">{{ room.name }}</a>
+        {% if room.is_group %}
+          <span class="label">Group</span>
+        {% else %}
+          <span class="label">Private</span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+
+  <h3>Create New Chat Room</h3>
+  <form method="post">
+    {% csrf_token %}
+    <input type="text" name="room_name" placeholder="Room name..." required>
+    <label><input type="checkbox" name="is_group"> Group Chat</label>
+    <button type="submit">Create</button>
+  </form>
+</div>
+{% endblock %}
+
+
+
+ {% endcomment %}

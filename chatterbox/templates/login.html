@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | ChatterBox</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="auth-body">
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <i class="fa-solid fa-comments"></i>
+            <h1>ChatterBox</h1>
+        </div>
+        
+        <h2>Welcome Back!</h2>
+        <p class="auth-subtitle">Log in to see what's happening.</p>
+
+        {% if form.errors %}
+            <div class="error-banner">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Invalid username or password.
+            </div>
+        {% endif %}
+
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <div class="input-icon-wrapper">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" name="username" placeholder="Username" required id="id_username">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="input-icon-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" name="password" placeholder="Password" required id="id_password">
+                </div>
+            </div>
+
+            <button type="submit" class="auth-btn">Log In</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="{% url 'signup' %}">Sign up here</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Basic centering and background */
+    .auth-body { 
+        background-color: #f0f2f5; 
+        height: 100vh; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .auth-card {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+    }
+
+    .auth-logo { color: #007bff; margin-bottom: 20px; }
+    .auth-logo i { font-size: 3rem; }
+    .auth-logo h1 { font-size: 1.8rem; margin: 0; }
+
+    .auth-subtitle { color: #666; margin-bottom: 30px; }
+
+    .form-group { margin-bottom: 15px; }
+    .input-icon-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .input-icon-wrapper i {
+        position: absolute;
+        left: 15px;
+        color: #888;
+    }
+    .input-icon-wrapper input {
+        width: 100%;
+        padding: 12px 12px 12px 45px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        outline: none;
+    }
+    .input-icon-wrapper input:focus { border-color: #007bff; }
+
+    .auth-btn {
+        width: 100%;
+        padding: 12px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .auth-btn:hover { background: #0056b3; }
+
+    .error-banner {
+        background: #ffe3e3;
+        color: #d93025;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+    }
+
+    .auth-footer { margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px; }
+    .auth-footer a { color: #007bff; text-decoration: none; font-weight: bold; }
+</style>
+
+</body>
+</html>
+
+{% comment %} <!-- templates/registration/login.html -->
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<div class="auth-container">
+    <h2>Login</h2>
+
+    {% if form.errors %}
+        <p style="color: red;">Invalid username or password.</p>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Log in</button>
+    </form>
+
+    <p>Don't have an account? <a href="{% url 'signup' %}">Sign up</a></p>
+</div>
+</body>
+</html> {% endcomment %}

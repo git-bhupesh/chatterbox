@@ -1,0 +1,11 @@
+<button class="like-btn {% if user_has_liked %}liked{% endif %}" 
+        hx-post="{% url 'like_post' post.id %}" 
+        hx-target="#like-section-{{ post.id }}" 
+        hx-swap="innerHTML">
+    {% if user_has_liked %}
+        <i class="fa-solid fa-heart"></i>
+    {% else %}
+        <i class="fa-regular fa-heart"></i>
+    {% endif %}
+    <span class="action-count">{{ post.likes.count }}</span>
+</button>

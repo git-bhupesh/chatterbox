@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="main-content">
+  <div class="post-form-wrapper">
+    <form method="post" enctype="multipart/form-data" class="post-form">
+      {% csrf_token %}
+      <div class="form-top">
+        {% if request.user.profile.avatar %}
+          <img src="{{ request.user.profile.avatar.url }}" class="avatar-mini" alt="Your Avatar">
+        {% else %}
+          <div class="avatar-mini placeholder-avatar">
+            {{ request.user.username|first|upper }}
+          </div>
+        {% endif %}
+        <textarea name="caption" placeholder="What's on your mind, {{ request.user.username }}?" required></textarea>
+      </div>
+
+      <div class="preview-container">
+        <img id="image-preview" class="post-image-preview" style="display: none;" />
+      </div>
+
+      <div class="form-bottom">
+        <div class="file-upload-wrapper">
+          <input type="file" name="image" id="image-upload" accept="image/*" onchange="previewImage(event)" class="file-input-hidden">
+          <label for="image-upload" class="custom-file-label">
+            <i class="fas fa-image"></i> Add Photo
+          </label>
+          <span id="file-name" class="file-name-display"></span>
+        </div>
+        <button type="submit" class="btn post-btn">Post</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="feed-container">
+    {% for post in posts %}
+      <div class="post-card" id="post-{{ post.id }}">
+        
+        <div class="post-header">
+          <div class="post-user-info">
+            <a href="{% url 'profile' username=post.author.username %}" class="user-avatar-link">
+              {% if post.author.profile.avatar %}
+                <img src="{{ post.author.profile.avatar.url }}" alt="Avatar" class="avatar-mini">
+              {% else %}
+                <div class="avatar-mini placeholder-avatar">{{ post.author.username|first|upper }}</div>
+              {% endif %}
+            </a>
+            <div class="user-text-meta">
+              <a href="{% url 'profile' username=post.author.username %}" class="user-name">
+                {{ post.author.username }}
+              </a>
+              <span class="post-time">{{ post.created_at|timesince }} ago</span>
+            </div>
+          </div>
+          
+          {% if user == post.author %}
+            <div class="post-options">
+              <button class="icon-btn">···</button>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="post-content">
+          <p class="post-caption">{{ post.caption }}</p>
+          {% if post.image %}
+            <div class="post-media">
+              <a href="{% url 'post_detail' post.id %}">
+                <img src="{{ post.image.url }}" class="post-image" alt="Post Image" loading="lazy">
+              </a>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="post-actions-row">
+          <div class="actions-left">
+            <div id="like-section-{{ post.id }}" class="action-item">
+              {% include "partials/like_button.html" %}
+            </div>
+
+            <button class="action-icon-btn" onclick="document.getElementById('comment-input-{{ post.id }}').focus()">
+              <i class="fa-regular fa-comment"></i>
+              {% if post.comments.count > 0 %}
+                <span class="action-count">{{ post.comments.count }}</span>
+              {% endif %}
+            </button>
+
+            <button class="action-icon-btn" onclick="copyPostLink('{{ post.id }}')">
+              <i class="fa-regular fa-paper-plane"></i>
+            </button>
+          </div>
+
+          <div class="actions-right">
+            <button class="action-icon-btn save-btn" onclick="toggleSave('{{ post.id }}', this)">
+              <i class="fa-regular fa-bookmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="comments-section">
+          <div class="comments-list-wrapper" id="comment-wrapper-{{ post.id }}">
+            
+            {% if post.comments.count > 1 %}
+            <div class="comment-expand-container">
+              <button type="button" class="expand-comments-btn" onclick="showAllComments('{{ post.id }}', this)">
+                View all {{ post.comments.count }} comments
+              </button>
+            </div>
+            {% endif %}
+
+            <div class="comments-list collapsed-view" id="comments-for-{{ post.id }}">
+              {% include "partials/comments_list.html" with post=post %}
+            </div>
+          </div>
+
+            <form 
+                method="post" 
+                action="{% url 'comment_post' post.id %}" 
+                hx-post="{% url 'comment_post' post.id %}" 
+                hx-target="#comments-for-{{ post.id }}" 
+                hx-swap="innerHTML" 
+                hx-on::after-request="this.reset(); revealAllForNewComment('{{ post.id }}');"
+                class="comment-form">
+            {% csrf_token %}
+            <div class="comment-input-wrapper">
+              <input type="text" name="content" id="comment-input-{{ post.id }}" placeholder="Add a comment..." required class="comment-input">
+              <button type="button" class="emoji-btn">😊</button>
+              <button type="submit" class="comment-submit-btn">Post</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-feed">
+        <p>No posts yet. Be the first to share something!</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  // 1. Image Preview
+  function previewImage(event) {
+    const reader = new FileReader();
+    const output = document.getElementById('image-preview');
+    const fileName = document.getElementById('file-name');
+    
+    reader.onload = function() {
+      output.src = reader.result;
+      output.style.display = 'block';
+      output.style.marginBottom = '15px';
+      output.style.borderRadius = '8px';
+      output.style.maxHeight = '300px';
+      output.style.width = '100%';
+      output.style.objectFit = 'cover';
+    };
+
+    if(event.target.files[0]) {
+      reader.readAsDataURL(event.target.files[0]);
+      fileName.textContent = event.target.files[0].name;
+    }
+  }
+
+  // 2. Clipboard & Save Actions
+  function copyPostLink(postId) {
+    const url = window.location.origin + '/post/' + postId;
+    navigator.clipboard.writeText(url);
+    alert("Post link copied to clipboard!");
+  }
+
+  function toggleSave(postId, btn) {
+    const icon = btn.querySelector('i');
+    icon.classList.toggle('fa-regular');
+    icon.classList.toggle('fa-solid');
+  }
+
+  // 3. Comment Expansion Logic
+  function showAllComments(postId, btn) {
+    const list = document.getElementById(`comments-for-${postId}`);
+    list.classList.remove('collapsed-view');
+    btn.parentElement.style.display = 'none';
+  }
+
+  function revealAllForNewComment(postId) {
+    const list = document.getElementById(`comments-for-${postId}`);
+    list.classList.remove('collapsed-view');
+    
+    const wrapper = document.getElementById(`comment-wrapper-${postId}`);
+    const btnContainer = wrapper.querySelector('.comment-expand-container');
+    if (btnContainer) {
+      btnContainer.style.display = 'none';
+    }
+  }
+</script>
+
+<style>
+  /* --- Action Row & Buttons --- */
+  .post-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-top: 1px solid var(--search-border);
+  }
+
+  .actions-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .action-icon-btn, .like-btn {
+    background: transparent;
+    border: none;
+    color: var(--search-text);
+    font-size: 1.4rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px;
+    transition: transform 0.1s ease;
+  }
+
+  .action-icon-btn:hover { color: var(--purple-theme); }
+  .action-icon-btn:active { transform: scale(0.9); }
+  .save-btn:hover { color: #f39c12; }
+  .like-btn.liked i { color: #ed4956; }
+
+  .action-count {
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  /* --- Header Alignment --- */
+  .post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+  }
+
+  .post-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .user-text-meta {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .user-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--search-text);
+    text-decoration: none;
+    line-height: 1.2;
+  }
+
+  .post-time {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* --- Social Media Style Comment Hiding --- */
+  /* This is the key fix for your multiple comment issue */
+  .comments-list.collapsed-view .comment-item:not(:first-child) {
+    display: none !important;
+  }
+
+  .comment-expand-container {
+    padding: 0 15px 5px;
+    text-align: left;
+  }
+
+  .expand-comments-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0;
+    font-weight: 500;
+  }
+
+  .expand-comments-btn:hover { text-decoration: underline; }
+
+  .comment-item {
+    margin-bottom: 8px;
+    padding: 0 15px;
+  }
+
+  /* --- Responsive --- */
+  @media (max-width: 768px) {
+    .post-actions-row { padding: 12px 10px; }
+    .action-icon-btn { font-size: 1.5rem; }
+    .actions-left { gap: 25px; }
+  }
+
+  /* --- Instagram-style Comment Hiding --- */
+/* Force hide everything except the first comment when collapsed */
+.comments-list.collapsed-view .comment {
+    display: none !important;
+}
+
+/* Force show ONLY the first comment */
+.comments-list.collapsed-view .comment:first-child {
+    display: flex !important;
+}
+
+/* Optional: remove 'No comments yet' message from the main feed for a cleaner look */
+.comments-list.collapsed-view .no-comments {
+    display: none;
+}
+
+.share-icon {
+  color: #ffffff; /* Clean white matches your 'bhupesh' text */
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.share-icon:hover {
+  color: #a855f7; /* Your signature purple only on hover */
+}
+</style>
+{% endblock %}

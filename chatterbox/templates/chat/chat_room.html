@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="chat-room-box">
+
+    {# ---------- CHAT TOP BAR ---------- #}
+    <div class="chat-header" style="display: flex; align-items: center; gap: 15px;">
+        <a href="{% url 'chat_list' %}" class="back-btn">
+            <i class="fa-solid fa-chevron-left"></i>
+        </a>
+
+        {% if not room.is_group %}
+            {% for participant in room.participants.all %}
+                {% if participant != request.user %}
+                    <div class="header-avatar-container" style="position: relative;">
+                        <img src="{{ participant.profile.avatar.url|default:'/static/default-avatar.png' }}" class="chat-header-avatar" />
+                        {% if participant.profile.is_online %}
+                            <span class="online-dot" style="position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; background: #4cd137; border-radius: 50%; border: 2px solid #fff;"></span>
+                        {% endif %}
+                    </div>
+                    <div class="header-info">
+                        <span class="chat-header-name" style="display: block;">{{ participant.username }}</span>
+                        <small style="font-size: 0.75rem; color: #888;">
+                            {% if participant.profile.is_online %}Active now{% else %}Away{% endif %}
+                        </small>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    {# ---------- MESSAGES SCROLLER ---------- #}
+    <div id="chat-box" class="chat-scroll">
+        {% for m in messages %}
+            <div class="bubble {% if m.sender == request.user %}me{% else %}them{% endif %}">
+                <img src="{{ m.sender.profile.avatar.url|default:'/static/default-avatar.png' }}" class="bubble-avatar">
+                <div class="bubble-body">
+                    {% if m.image %}
+                        <img src="{{ m.image.url }}" class="msg-image" style="max-width:250px; border-radius:10px; margin-bottom:5px; display:block;">
+                    {% endif %}
+                    
+                    <div class="bubble-text">{{ m.content }}</div>
+
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 2px;">
+                        <span class="bubble-time" style="font-size: 0.65rem; opacity: 0.7;">{{ m.timestamp|date:"P" }}</span>
+                        {% if m.sender == request.user %}
+                            <span class="ticks {% if m.read_by.count >= room.participants.count %}read{% endif %}" style="font-size: 12px;">
+                                {% if m.read_by.count >= room.participants.count %}✓✓{% else %}✓{% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div id="empty-chat-msg" class="text-center p-5 text-muted">No messages yet. Say hello!</div>
+        {% endfor %}
+    </div>
+
+    {# ---------- TYPING INDICATOR ---------- #}
+    <div id="typing-indicator" class="typing" style="display:none; padding: 5px 15px; font-size: 0.85rem; color: #666;">
+        <span id="typing-text"></span> is typing...
+    </div>
+
+    {# ---------- IMAGE PREVIEW AREA ---------- #}
+    {# FIXED: Ensure display is none !important by default #}
+    <div id="image-preview-container" style="display: none !important; padding: 10px; background: #f9f9f9; border-top: 1px solid #ddd; align-items: center; gap: 10px;">
+        <img id="image-preview" src="" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 2px solid #007bff;">
+        <div style="flex-grow: 1;">
+            <small class="text-muted" style="display:block;">Image attached</small>
+            <button type="button" id="remove-img" style="background:none; border:none; color:red; cursor:pointer; font-size: 0.8rem; padding:0;">Remove</button>
+        </div>
+    </div>
+
+    {# ---------- INPUT BAR ---------- #}
+    <form id="chat-form" method="post" class="input-bar" enctype="multipart/form-data" autocomplete="off">
+        {% csrf_token %}
+        <div class="input-actions" style="display:flex; gap:15px; align-items:center; padding: 0 10px;">
+            <input type="file" id="image-input" name="image" accept="image/*" style="display:none;">
+            <label for="image-input" class="icon-btn" title="Send Image" style="cursor:pointer; color:#555; font-size:1.2rem;">
+                <i class="fa-regular fa-image"></i>
+            </label>
+            <span id="emoji-btn" class="icon-btn" title="Pick Emoji" style="cursor:pointer; color:#555; font-size:1.2rem;">
+                <i class="fa-regular fa-face-smile"></i>
+            </span>
+        </div>
+        <input id="msg-input" type="text" name="content" placeholder="Type a message..." required>
+        <button type="submit" class="send-btn">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
+    </form>
+</div>
+
+<style>
+    /* Pro Suggestion: Better visibility for ticks on blue bubbles */
+    .bubble.me .ticks.read {
+        color: #ade8ff !important;
+        font-weight: bold;
+    }
+    .bubble.me .ticks {
+        color: #e0e0e0;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js"></script>
+
+<script>
+    const box = document.getElementById("chat-box");
+    const inputField = document.getElementById("msg-input");
+    const chatForm = document.getElementById("chat-form");
+    const imageInput = document.getElementById('image-input');
+    const previewContainer = document.getElementById('image-preview-container');
+    const previewImg = document.getElementById('image-preview');
+    const removeImgBtn = document.getElementById('remove-img');
+    const emojiBtn = document.getElementById('emoji-btn');
+    
+    const currentUser = "{{ request.user.username }}";
+    const roomID = "{{ room.id }}";
+
+    const scrollToBottom = () => { box.scrollTop = box.scrollHeight; };
+    scrollToBottom();
+
+    // ---- IMAGE PREVIEW LOGIC ----
+    imageInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                // Use setProperty with !important to override the CSS
+                previewContainer.style.setProperty('display', 'flex', 'important');
+                inputField.required = false; 
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    removeImgBtn.addEventListener('click', () => {
+        imageInput.value = '';
+        previewContainer.style.setProperty('display', 'none', 'important');
+        
+        // RESTORE REQUIRED: If the image is removed, text becomes mandatory again
+        inputField.required = true; 
+    });
+
+    // ---- EMOJI PICKER LOGIC ----
+    const pickerOptions = { 
+        onEmojiSelect: (emoji) => {
+            inputField.value += emoji.native;
+            inputField.focus();
+        },
+        theme: 'light'
+    };
+    const picker = new EmojiMart.Picker(pickerOptions);
+
+    emojiBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); 
+        const existingPicker = document.querySelector('em-picker');
+        if (existingPicker) {
+            existingPicker.remove();
+        } else {
+            picker.style.position = 'absolute';
+            picker.style.bottom = '80px';
+            picker.style.left = '20px';
+            picker.style.zIndex = '1000';
+            document.querySelector('.chat-room-box').appendChild(picker);
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        const p = document.querySelector('em-picker');
+        if (p && !p.contains(e.target) && e.target !== emojiBtn) {
+            p.remove();
+        }
+    });
+
+    // ---- TYPING LOGIC ------
+    let typingTimer = null;
+    let isTyping = false;
+
+    function setTypingStatus(status) {
+        const url = status === 'start' ? "{% url 'typing_start' room.id %}" : "{% url 'typing_stop' room.id %}";
+        fetch(url, { headers: { "X-Requested-With": "fetch" } });
+    }
+
+    inputField.addEventListener("input", () => {
+        if (!isTyping) {
+            isTyping = true;
+            setTypingStatus('start');
+        }
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            setTypingStatus('stop');
+            isTyping = false;
+        }, 2000);
+    });
+
+   // ---- FORM SUBMISSION FIX ----
+    chatForm.addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    // 1. Get values safely
+    const contentValue = inputField.value ? inputField.value.trim() : "";
+    const hasFile = imageInput.files && imageInput.files.length > 0;
+
+    // 2. Prevent sending if both are empty
+    if (!contentValue && !hasFile) {
+        console.log("Nothing to send");
+        return;
+    }
+
+    // 3. Prepare Data
+    const formData = new FormData(this);
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // 4. Send to Server
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData,
+        headers: { 
+            "X-Requested-With": "fetch",
+            "X-CSRFToken": csrfToken 
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Reset UI
+            inputField.value = ""; 
+            imageInput.value = "";
+            if (previewContainer) {
+                previewContainer.style.setProperty('display', 'none', 'important');
+            }
+            inputField.required = true; // Reset browser validation
+            updateMessages();      
+        } else {
+            console.error("Server returned an error");
+        }
+    })
+    .catch(err => console.error("Network or Fetch error:", err));
+});
+
+        // 2. Messages & Seen Receipts
+       function updateMessages() {
+    fetch("{% url 'chat_room_json' room.id %}")
+        .then(r => r.json())
+        .then(data => {
+            let newHTML = "";
+            data.messages.forEach(m => {
+                const isMe = m.sender === currentUser ? 'me' : 'them';
+                let statusHTML = "";
+                if (isMe === 'me') {
+                    if (m.read) {
+                        statusHTML = `<span class="ticks read" style="font-size: 12px;">✓✓</span>
+                                      ${m.reader_avatar ? `<img src="${m.reader_avatar}" style="width:14px; height:14px; border-radius:50%; margin-left:2px;">` : ''}`;
+                    } else {
+                        statusHTML = `<span class="ticks" style="color: #e0e0e0; font-size: 12px; opacity: 0.7;">✓</span>`;
+                    }
+                }
+
+                const imageTag = m.image_url ? `<img src="${m.image_url}" class="msg-image" style="max-width:250px; border-radius:10px; margin-bottom:5px; display:block;">` : '';
+                
+                newHTML += `
+                    <div class="bubble ${isMe}">
+                        <img src="${m.avatar}" class="bubble-avatar">
+                        <div class="bubble-body">
+                            ${imageTag}
+                            <div class="bubble-text">${m.content}</div>
+                            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 2px;">
+                                <span class="bubble-time" style="font-size: 0.65rem; opacity: 0.7;">${m.timestamp_pretty}</span>
+                                ${statusHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Check if user is currently scrolled to the bottom
+            const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 50;
+
+            if (box.innerHTML.trim() !== newHTML.trim()) {
+                box.innerHTML = newHTML;
+                
+                // Only scroll down if the user was already at the bottom 
+                // (This prevents jumping if they are reading old messages)
+                if (isAtBottom) {
+                    scrollToBottom();
+                }
+            }
+        });
+}
+// A 100px buffer is better for mobile
+const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 100;
+    setInterval(updateMessages, 3000);
+</script>
+{% endblock %}

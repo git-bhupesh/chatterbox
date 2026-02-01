@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="edit-comment-container">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h4 class="mb-0">✏️ Edit Your Comment</h4>
+        </div>
+        
+        <div class="card-body">
+            {# --- CONTEXT: THE ORIGINAL POST --- #}
+            <div class="original-post-context mb-4 p-3 rounded bg-light border-start border-primary border-4">
+                <small class="text-muted d-block mb-1">Replying to <strong>{{ comment.post.author.username }}</strong>:</small>
+                <p class="mb-0 text-truncate">"{{ comment.post.caption }}"</p>
+            </div>
+
+            <form method="post" class="comment-edit-form">
+                {% csrf_token %}
+                
+                <div class="form-group mb-3 position-relative">
+                    <label for="content" class="form-label fw-bold">Update your thoughts:</label>
+                    <textarea 
+                        name="content" 
+                        id="comment-textarea"
+                        class="form-control" 
+                        rows="4" 
+                        placeholder="What did you mean to say?"
+                        required>{{ comment.content }}</textarea>
+                    
+                    <button type="button" class="btn btn-sm position-absolute end-0 bottom-0 me-2 mb-2" id="emoji-picker-btn">😊</button>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="text-decoration-none text-muted">
+                        <i class="fa-solid fa-arrow-left"></i> Nevermind
+                    </a>
+                    <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .edit-comment-container {
+        max-width: 550px;
+        margin: 50px auto;
+    }
+    .original-post-context {
+        font-size: 0.9rem;
+    }
+    #comment-textarea {
+        border-radius: 12px;
+        resize: none;
+        padding-right: 40px; /* Space for emoji btn */
+    }
+    #comment-textarea:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+</style>
+{% endblock %}
+{% comment %} {% extends 'base.html' %}
+{% block content %}
+<div class="edit-profile-form">
+  <h2>Edit Comment</h2>
+  <form method="post">
+    {% csrf_token %}
+    <textarea name="content" rows="4" required>{{ comment.content }}</textarea>
+    <button type="submit">Save Changes</button>
+    <a href="{% url 'feed' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %} {% endcomment %}
+
+

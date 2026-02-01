@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="search-wrapper">
+    <div class="search-inner">
+        
+        <div class="search-header mb-4">
+            <h2 class="search-title">🔍 Search Results</h2>
+            {% if query %}
+                <p class="search-subtitle">Showing results for "<strong>{{ query }}</strong>"</p>
+            {% endif %}
+        </div>
+
+        <div class="search-results-list">
+            {% for user_obj in users %}
+                <div class="search-card">
+                    <div class="card-content">
+                        
+                        {# --- USER INFO --- #}
+                        <div class="user-info-group">
+                            <a href="{% url 'profile' user_obj.username %}" class="avatar-link">
+                                <img src="{{ user_obj.profile.avatar.url|default:'/static/default-avatar.png' }}" 
+                                     alt="{{ user_obj.username }}" 
+                                     class="search-avatar">
+                            </a>
+                            
+                            <div class="user-text">
+                                <a href="{% url 'profile' user_obj.username %}" class="username-link">
+                                    <h5 class="m-0">{{ user_obj.username }}</h5>
+                                </a>
+                                <span class="full-name">{{ user_obj.get_full_name|default:"ChatterBox User" }}</span>
+                            </div>
+                        </div>
+
+                        {# --- ACTION BUTTON --- #}
+                        <div class="search-actions">
+                            {% if user_obj == request.user %}
+                                <span class="self-badge">It's You</span>
+                            {% else %}
+                                <a href="{% url 'profile' user_obj.username %}" class="btn-view-profile">
+                                    View Profile
+                                </a>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+            {% empty %}
+                <div class="search-empty">
+                    <i class="fa-solid fa-user-slash fa-3x mb-3"></i>
+                    <p>We couldn't find anyone matching that name.</p>
+                    <a href="{% url 'feed' %}" class="btn-back">Go back to Feed</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* --- Search Page Layout --- */
+    .search-wrapper {
+        padding: 40px 20px;
+        background: var(--bg-body); /* Syncs with your toggle */
+        min-height: 90vh;
+        display: flex;
+        justify-content: center;
+    }
+
+    .search-inner {
+        width: 100%;
+        max-width: 600px;
+    }
+
+    .search-title {
+        color: var(--text-main);
+        font-weight: 800;
+    }
+
+    .search-subtitle {
+        color: var(--text-muted);
+    }
+
+    /* --- Search Card Design --- */
+    .search-card {
+        background: var(--bg-card); /* Adaptive background */
+        border-radius: 16px;
+        padding: 15px 20px;
+        margin-bottom: 15px;
+        border: 1px solid var(--border-color);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .search-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .card-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    .user-info-group {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    /* --- Avatar Fix --- */
+    .search-avatar {
+        width: 65px;
+        height: 65px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--primary-blue, #0084ff);
+        background: #eee;
+    }
+
+    .user-text h5 {
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .username-link { text-decoration: none; }
+
+    .full-name {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    /* --- Action Buttons --- */
+    .btn-view-profile {
+        text-decoration: none;
+        background: var(--primary-blue, #0084ff);
+        color: white !important;
+        padding: 8px 18px;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: opacity 0.2s;
+    }
+
+    .btn-view-profile:hover {
+        opacity: 0.9;
+    }
+
+    .self-badge {
+        background: var(--bg-input);
+        color: var(--text-muted);
+        padding: 5px 12px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+    }
+
+    /* --- Empty State --- */
+    .search-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+    }
+
+    .btn-back {
+        display: inline-block;
+        margin-top: 15px;
+        color: var(--primary-blue);
+        text-decoration: none;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+{% comment %} {% extends 'base.html' %}
+{% block content %}
+  <div class="search-results">
+    <h2>Search Results{% if query %} for "{{ query }}"{% endif %}</h2>
+    <ul class="user-list">
+      {% for user in users %}
+        <li>
+          <a href="{% url 'profile' user.username %}">
+            {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
+          </a>
+        </li>
+      {% empty %}
+        <p>No users found.</p>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %} {% endcomment %}
