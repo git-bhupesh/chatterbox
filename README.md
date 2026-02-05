@@ -42,7 +42,7 @@ The platform supports **real-time messaging**, **live notifications**, and a **d
 ![Notifications]<img width="1919" height="915" alt="image" src="https://github.com/user-attachments/assets/043be9f0-7db7-4ec8-b70c-5560479f3191" />
 ![Profile]<img width="1919" height="917" alt="image" src="https://github.com/user-attachments/assets/4d9abc9c-3609-42a2-b4f0-474a6232174e" />
 ![Signup]<img width="1903" height="913" alt="image" src="https://github.com/user-attachments/assets/19c09bc5-f1ad-45a6-a905-cf2ebe8563e2" />
-1[MobileView]<img width="393" height="828" alt="image" src="https://github.com/user-attachments/assets/2b05ea6d-6644-4a35-b432-a82816f5ed69" />
+![MobileView]<img width="393" height="828" alt="image" src="https://github.com/user-attachments/assets/2b05ea6d-6644-4a35-b432-a82816f5ed69" />
 
 ```
 
@@ -226,9 +226,7 @@ Licensed under the **MIT License**.
 
 ---
 
-## ⭐ Final Note for Recruiters
-
-This project reflects my hands-on experience with:
+## ⭐ This project reflects my hands-on experience with:
 
 * Real-time backend systems
 * Django production patterns
