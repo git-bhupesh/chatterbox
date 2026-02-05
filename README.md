@@ -41,15 +41,15 @@ Login
 ![Chat]
 
 <img width="1919" height="915" alt="image" src="https://github.com/user-attachments/assets/95519cb8-e081-4d65-b4d5-6e2169f08e18" />
-![Feed]
+Feed
 <img width="1919" height="913" alt="image" src="https://github.com/user-attachments/assets/7ce8dd96-b74b-4831-9690-08decd08becf" />
-![Notifications]
+Notifications
 <img width="1919" height="915" alt="image" src="https://github.com/user-attachments/assets/043be9f0-7db7-4ec8-b70c-5560479f3191" />
-![Profile]
+Profile
 <img width="1919" height="917" alt="image" src="https://github.com/user-attachments/assets/4d9abc9c-3609-42a2-b4f0-474a6232174e" />
-![Signup]
+Signup
 <img width="1903" height="913" alt="image" src="https://github.com/user-attachments/assets/19c09bc5-f1ad-45a6-a905-cf2ebe8563e2" />
-![MobileView]
+MobileView
 <img width="393" height="828" alt="image" src="https://github.com/user-attachments/assets/2b05ea6d-6644-4a35-b432-a82816f5ed69" />
 
 
