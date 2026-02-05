@@ -38,8 +38,7 @@ The platform supports **real-time messaging**, **live notifications**, and a **d
 
 Login
 <img width="1919" height="913" alt="Screenshot 2026-02-05 175444" src="https://github.com/user-attachments/assets/619afefd-13b3-4c84-92b3-b21686915efe" />
-![Chat]
-
+Chat
 <img width="1919" height="915" alt="image" src="https://github.com/user-attachments/assets/95519cb8-e081-4d65-b4d5-6e2169f08e18" />
 Feed
 <img width="1919" height="913" alt="image" src="https://github.com/user-attachments/assets/7ce8dd96-b74b-4831-9690-08decd08becf" />
