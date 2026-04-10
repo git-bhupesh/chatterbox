@@ -109,6 +109,7 @@ MobileView
 
 ### 🏗️ System Architecture
 
+```mermaid
 graph TD
     User((User/Browser)) -->|HTTP Requests| Django[Django Server]
     User -->|WebSockets| Daphne[Daphne/Channels ASGI]
@@ -134,6 +135,7 @@ graph TD
     style Redis_Broker fill:#ff9999,stroke:#333
     style Daphne fill:#99ff99,stroke:#333
     style Celery fill:#99ccff,stroke:#333
+```
 ---
 
 ## 📦 Installation & Setup
