@@ -105,6 +105,33 @@ MobileView
 * User search
 * Feed personalization logic
 
+### 🏗️ System Architecture
+
+graph TD
+    User((User/Browser)) -->|HTTP Requests| Django[Django Server]
+    User -->|WebSockets| Daphne[Daphne/Channels ASGI]
+    
+    subgraph "Real-Time Layer"
+        Daphne <--> Redis_Channel[Redis Channel Layer]
+        Redis_Channel <--> Daphne
+    end
+    
+    subgraph "Async Task Layer"
+        Django -->|Trigger Task| Redis_Broker[Redis Broker]
+        Redis_Broker --> Celery[Celery Worker]
+        Celery -->|Update Status| DB[(PostgreSQL/SQLite)]
+    end
+    
+    subgraph "Storage & Data"
+        Django --> DB
+        Django --> Cloudinary[Cloudinary Media Storage]
+    end
+    
+    style User fill:#f9f,stroke:#333,stroke-width:2px
+    style Redis_Channel fill:#ff9999,stroke:#333
+    style Redis_Broker fill:#ff9999,stroke:#333
+    style Daphne fill:#99ff99,stroke:#333
+    style Celery fill:#99ccff,stroke:#333
 ---
 
 ## 📦 Installation & Setup
@@ -214,7 +241,7 @@ celery -A chatterbox worker -l info
 
 **Bhupesh Dewangan**
 
-* GitHub: [https://github.com/git-bhupesh](https://github.com/git-bhupesh)
+* GitHub: [https://github.com/bhupeshkd](https://github.com/bhupeshkd)
 * Passionate about backend development, real-time systems, and scalable web applications.
 
 ---
