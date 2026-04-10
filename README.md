@@ -143,7 +143,7 @@ graph TD
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/git-bhupesh/chatterbox.git
+git clone https://github.com/bhupeshkd/chatterbox.git
 cd chatterbox
 ```
 
