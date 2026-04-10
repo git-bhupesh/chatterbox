@@ -105,6 +105,8 @@ MobileView
 * User search
 * Feed personalization logic
 
+---
+
 ### 🏗️ System Architecture
 
 graph TD
